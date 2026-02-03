@@ -7,286 +7,200 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    @keyframes confettiFall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-    }
-    @keyframes popIn {
-      0% { transform: scale(0.5); opacity: 0; }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @keyframes wheelSpin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(1800deg); }
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 5px currentColor; }
-      50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
-    }
-    @keyframes slideIn {
-      0% { transform: translateX(-100%); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes fadeSlide {
-      0% { opacity: 0; transform: translateY(-20px); }
-      20% { opacity: 1; transform: translateY(0); }
-      80% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(20px); }
-    }
+    body { font-family: 'Quicksand', sans-serif; background: #0a0a1a; min-height: 100vh; overflow-x: hidden; }
+    .starfield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 3s infinite ease-in-out; }
+    @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+    .grid-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 1; }
+    .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px); pointer-events: none; z-index: 1000; opacity: 0.3; }
+    @keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes neonPulse { 0%, 100% { box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor; } 50% { box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
     input:focus, select:focus, button:focus, textarea:focus { outline: none; }
-    button { transition: transform 0.1s, box-shadow 0.1s; }
-    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    button:active:not(:disabled) { transform: translateY(0); }
-    .participant-btn { transition: all 0.2s ease; }
-    .participant-btn:hover { transform: scale(1.05); }
-    .participant-btn:active { transform: scale(0.95); }
+    button { transition: all 0.2s ease; font-family: 'Quicksand', sans-serif; }
+    button:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+    button:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+    .neon-card { background: linear-gradient(135deg, rgba(20,20,40,0.9) 0%, rgba(30,30,60,0.9) 100%); border: 2px solid #00ffff; box-shadow: 0 0 20px rgba(0,255,255,0.3), inset 0 0 20px rgba(0,255,255,0.05); backdrop-filter: blur(10px); }
+    .arcade-btn { font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
+    .arcade-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
+    .arcade-btn:hover::before { left: 100%; }
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect } = React;
 
-    // Color options for participants
+    const StarField = () => {
+      const stars = Array.from({ length: 100 }, (_, i) => ({ id: i, left: Math.random() * 100, top: Math.random() * 100, size: Math.random() * 3 + 1, delay: Math.random() * 3, duration: Math.random() * 2 + 2 }));
+      return (<div className="starfield">{stars.map(star => (<div key={star.id} className="star" style={{ left: `${star.left}%`, top: `${star.top}%`, width: `${star.size}px`, height: `${star.size}px`, animationDelay: `${star.delay}s`, animationDuration: `${star.duration}s` }} />))}</div>);
+    };
+
     const COLOR_OPTIONS = [
-      { id: 'purple', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', primary: '#667eea' },
-      { id: 'pink', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', primary: '#f093fb' },
-      { id: 'teal', gradient: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)', primary: '#4ecdc4' },
-      { id: 'orange', gradient: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)', primary: '#ff6b6b' },
-      { id: 'blue', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', primary: '#4facfe' },
-      { id: 'green', gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', primary: '#11998e' },
-      { id: 'gold', gradient: 'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)', primary: '#f7971e' },
-      { id: 'indigo', gradient: 'linear-gradient(135deg, #5c6bc0 0%, #3949ab 100%)', primary: '#5c6bc0' },
+      { id: 'cyan', gradient: 'linear-gradient(135deg, #00ffff 0%, #0080ff 100%)', primary: '#00ffff', glow: '0 0 20px #00ffff' },
+      { id: 'magenta', gradient: 'linear-gradient(135deg, #ff00ff 0%, #ff0080 100%)', primary: '#ff00ff', glow: '0 0 20px #ff00ff' },
+      { id: 'lime', gradient: 'linear-gradient(135deg, #00ff00 0%, #80ff00 100%)', primary: '#00ff00', glow: '0 0 20px #00ff00' },
+      { id: 'gold', gradient: 'linear-gradient(135deg, #ffff00 0%, #ffaa00 100%)', primary: '#ffff00', glow: '0 0 20px #ffff00' },
+      { id: 'orange', gradient: 'linear-gradient(135deg, #ff8000 0%, #ff4000 100%)', primary: '#ff8000', glow: '0 0 20px #ff8000' },
+      { id: 'pink', gradient: 'linear-gradient(135deg, #ff80ff 0%, #ff00aa 100%)', primary: '#ff80ff', glow: '0 0 20px #ff80ff' },
+      { id: 'blue', gradient: 'linear-gradient(135deg, #4080ff 0%, #0040ff 100%)', primary: '#4080ff', glow: '0 0 20px #4080ff' },
+      { id: 'purple', gradient: 'linear-gradient(135deg, #aa00ff 0%, #6600ff 100%)', primary: '#aa00ff', glow: '0 0 20px #aa00ff' },
     ];
 
-    // Animal/Dino avatars for participants
     const AVATARS = [
-      { id: 'trex', name: 'T-Rex', emoji: '🦖' },
-      { id: 'stego', name: 'Stegosaurus', emoji: '🦕' },
-      { id: 'lion', name: 'Lion', emoji: '🦁' },
-      { id: 'butterfly', name: 'Butterfly', emoji: '🦋' },
-      { id: 'frog', name: 'Frog', emoji: '🐸' },
-      { id: 'eagle', name: 'Eagle', emoji: '🦅' },
-      { id: 'tiger', name: 'Tiger', emoji: '🐯' },
-      { id: 'dragon', name: 'Dragon', emoji: '🐉' },
-      { id: 'unicorn', name: 'Unicorn', emoji: '🦄' },
-      { id: 'bee', name: 'Bee', emoji: '🐝' },
-      { id: 'ladybug', name: 'Ladybug', emoji: '🐞' },
-      { id: 'caterpillar', name: 'Caterpillar', emoji: '🐛' },
+      { id: 'trex', name: 'T-Rex', emoji: '🦖', badges: ['Baby Rex', 'Young Rex', 'Mighty T-Rex'] },
+      { id: 'stego', name: 'Stegosaurus', emoji: '🦕', badges: ['Tiny Stego', 'Growing Stego', 'Grand Stegosaurus'] },
+      { id: 'lion', name: 'Lion', emoji: '🦁', badges: ['Lion Cub', 'Young Lion', 'King of Jungle'] },
+      { id: 'butterfly', name: 'Butterfly', emoji: '🦋', badges: ['Caterpillar', 'Cocoon', 'Beautiful Butterfly'] },
+      { id: 'frog', name: 'Frog', emoji: '🐸', badges: ['Tadpole', 'Froglet', 'Leaping Frog'] },
+      { id: 'eagle', name: 'Eagle', emoji: '🦅', badges: ['Eaglet', 'Fledgling', 'Soaring Eagle'] },
+      { id: 'tiger', name: 'Tiger', emoji: '🐯', badges: ['Tiger Cub', 'Young Tiger', 'Fierce Tiger'] },
+      { id: 'dragon', name: 'Dragon', emoji: '🐉', badges: ['Dragon Egg', 'Hatchling', 'Mighty Dragon'] },
+      { id: 'unicorn', name: 'Unicorn', emoji: '🦄', badges: ['Baby Unicorn', 'Young Unicorn', 'Magical Unicorn'] },
+      { id: 'bee', name: 'Bee', emoji: '🐝', badges: ['Larva Bee', 'Worker Bee', 'Queen Bee'] },
+      { id: 'ladybug', name: 'Ladybug', emoji: '🐞', badges: ['Tiny Dot', 'Spotted Bug', 'Lucky Ladybug'] },
+      { id: 'bear', name: 'Bear', emoji: '🐻', badges: ['Baby Cub', 'Young Bear', 'Big Bear'] },
     ];
 
-    // Level progression system
     const LEVELS = [
-      { level: 1, name: 'Egg', minXP: 0, emoji: '🥚' },
-      { level: 2, name: 'Hatchling', minXP: 100, emoji: '🐣' },
-      { level: 3, name: 'Explorer', minXP: 300, emoji: '🔍' },
-      { level: 4, name: 'Adventurer', minXP: 600, emoji: '🗺️' },
-      { level: 5, name: 'Champion', minXP: 1000, emoji: '🏆' },
-      { level: 6, name: 'Hero', minXP: 1500, emoji: '⭐' },
-      { level: 7, name: 'Legend', minXP: 2500, emoji: '👑' },
-      { level: 8, name: 'Mythical', minXP: 4000, emoji: '✨' },
+      { level: 1, name: 'Stardust', minXP: 0, emoji: '✨' },
+      { level: 2, name: 'Comet', minXP: 100, emoji: '☄️' },
+      { level: 3, name: 'Moon Walker', minXP: 300, emoji: '🌙' },
+      { level: 4, name: 'Star Pilot', minXP: 600, emoji: '⭐' },
+      { level: 5, name: 'Nebula Master', minXP: 1000, emoji: '🌌' },
+      { level: 6, name: 'Galaxy Hero', minXP: 1500, emoji: '🌟' },
+      { level: 7, name: 'Cosmic Legend', minXP: 2500, emoji: '💫' },
+      { level: 8, name: 'Universe Champion', minXP: 4000, emoji: '🏆' },
     ];
 
-    // Badge definitions
+    const generateAvatarBadges = () => {
+      const badges = [];
+      AVATARS.forEach(avatar => {
+        avatar.badges.forEach((badgeName, index) => {
+          const threshold = index === 0 ? 1 : index === 1 ? 5 : 10;
+          badges.push({ id: `${avatar.id}_${index + 1}`, name: badgeName, emoji: avatar.emoji, description: `Complete ${threshold} ${threshold === 1 ? 'activity' : 'activities'} as ${avatar.name}`, avatarId: avatar.id, threshold, tier: index + 1 });
+        });
+      });
+      return badges;
+    };
+    const AVATAR_BADGES = generateAvatarBadges();
+
     const BADGES = [
-      { id: 'first_steps', name: 'First Steps', emoji: '👣', description: 'Complete your first activity', condition: (stats) => stats.totalCompleted >= 1 },
-      { id: 'getting_warmed_up', name: 'Warmed Up', emoji: '🔥', description: 'Complete 5 activities', condition: (stats) => stats.totalCompleted >= 5 },
-      { id: 'on_fire', name: 'On Fire!', emoji: '🌟', description: 'Complete 10 activities', condition: (stats) => stats.totalCompleted >= 10 },
-      { id: 'unstoppable', name: 'Unstoppable', emoji: '💪', description: 'Complete 25 activities', condition: (stats) => stats.totalCompleted >= 25 },
-      { id: 'century', name: 'Century Club', emoji: '💯', description: 'Earn 100 points', condition: (stats) => stats.totalPoints >= 100 },
-      { id: 'five_hundred', name: 'High Scorer', emoji: '🎯', description: 'Earn 500 points', condition: (stats) => stats.totalPoints >= 500 },
-      { id: 'thousand', name: 'Point Master', emoji: '🏅', description: 'Earn 1000 points', condition: (stats) => stats.totalPoints >= 1000 },
-      { id: 'balance_master', name: 'Balance Master', emoji: '🧘', description: 'Complete 5 balance activities', condition: (stats) => stats.balanceCompleted >= 5 },
-      { id: 'jump_champion', name: 'Jump Champion', emoji: '🦘', description: 'Complete 5 jumping activities', condition: (stats) => stats.jumpCompleted >= 5 },
-      { id: 'team_player', name: 'Team Player', emoji: '🤝', description: 'Complete 5 team activities', condition: (stats) => stats.teamCompleted >= 5 },
-      { id: 'favorite_finder', name: 'Favorite Finder', emoji: '❤️', description: 'Add 3 activities to favorites', condition: (stats) => stats.favoritesCount >= 3 },
-      { id: 'explorer', name: 'Activity Explorer', emoji: '🧭', description: 'Try 15 different activities', condition: (stats) => stats.uniqueActivities >= 15 },
-      { id: 'streak_starter', name: 'Streak Starter', emoji: '📅', description: 'Complete activities on 3 different days', condition: (stats) => stats.uniqueDays >= 3 },
-      { id: 'weekly_warrior', name: 'Weekly Warrior', emoji: '🗓️', description: 'Complete activities on 7 different days', condition: (stats) => stats.uniqueDays >= 7 },
+      { id: 'first_steps', name: 'First Steps', emoji: '👣', description: 'Complete your first activity', condition: (s) => s.totalCompleted >= 1 },
+      { id: 'getting_warmed_up', name: 'Warming Up', emoji: '🔥', description: 'Complete 5 activities', condition: (s) => s.totalCompleted >= 5 },
+      { id: 'on_fire', name: 'On Fire!', emoji: '🌟', description: 'Complete 10 activities', condition: (s) => s.totalCompleted >= 10 },
+      { id: 'unstoppable', name: 'Unstoppable', emoji: '💪', description: 'Complete 25 activities', condition: (s) => s.totalCompleted >= 25 },
+      { id: 'superstar', name: 'Superstar', emoji: '🌠', description: 'Complete 50 activities', condition: (s) => s.totalCompleted >= 50 },
+      { id: 'century', name: 'Century Club', emoji: '💯', description: 'Earn 100 points', condition: (s) => s.totalPoints >= 100 },
+      { id: 'five_hundred', name: 'High Scorer', emoji: '🎯', description: 'Earn 500 points', condition: (s) => s.totalPoints >= 500 },
+      { id: 'thousand', name: 'Point Master', emoji: '🏅', description: 'Earn 1000 points', condition: (s) => s.totalPoints >= 1000 },
+      { id: 'two_thousand', name: 'XP Legend', emoji: '👑', description: 'Earn 2000 points', condition: (s) => s.totalPoints >= 2000 },
+      { id: 'balance_starter', name: 'Finding Balance', emoji: '🧘', description: 'Complete 3 balance activities', condition: (s) => s.balanceCompleted >= 3 },
+      { id: 'balance_master', name: 'Balance Master', emoji: '⚖️', description: 'Complete 10 balance activities', condition: (s) => s.balanceCompleted >= 10 },
+      { id: 'jump_starter', name: 'First Jumps', emoji: '🦘', description: 'Complete 3 jumping activities', condition: (s) => s.jumpCompleted >= 3 },
+      { id: 'jump_champion', name: 'Jump Champion', emoji: '🚀', description: 'Complete 10 jumping activities', condition: (s) => s.jumpCompleted >= 10 },
+      { id: 'team_starter', name: 'Team Spirit', emoji: '🤝', description: 'Complete 3 team activities', condition: (s) => s.teamCompleted >= 3 },
+      { id: 'team_player', name: 'Team Player', emoji: '👨‍👩‍👧‍👦', description: 'Complete 10 team activities', condition: (s) => s.teamCompleted >= 10 },
+      { id: 'strength_starter', name: 'Getting Strong', emoji: '💪', description: 'Complete 3 strength activities', condition: (s) => s.strengthCompleted >= 3 },
+      { id: 'strength_hero', name: 'Strength Hero', emoji: '🦸', description: 'Complete 10 strength activities', condition: (s) => s.strengthCompleted >= 10 },
+      { id: 'favorite_finder', name: 'Favorite Finder', emoji: '❤️', description: 'Add 3 activities to favorites', condition: (s) => s.favoritesCount >= 3 },
+      { id: 'explorer', name: 'Activity Explorer', emoji: '🧭', description: 'Try 15 different activities', condition: (s) => s.uniqueActivities >= 15 },
+      { id: 'adventurer', name: 'Grand Adventurer', emoji: '🗺️', description: 'Try 30 different activities', condition: (s) => s.uniqueActivities >= 30 },
+      { id: 'streak_starter', name: 'Streak Starter', emoji: '📅', description: 'Complete activities 3 different days', condition: (s) => s.uniqueDays >= 3 },
+      { id: 'weekly_warrior', name: 'Weekly Warrior', emoji: '🗓️', description: 'Complete activities 7 different days', condition: (s) => s.uniqueDays >= 7 },
+      { id: 'monthly_master', name: 'Monthly Master', emoji: '📆', description: 'Complete activities 14 different days', condition: (s) => s.uniqueDays >= 14 },
+      { id: 'dance_starter', name: 'Dance Beginner', emoji: '💃', description: 'Complete 3 dance activities', condition: (s) => s.danceCompleted >= 3 },
+      { id: 'dance_star', name: 'Dance Star', emoji: '🕺', description: 'Complete 10 dance activities', condition: (s) => s.danceCompleted >= 10 },
+      { id: 'yoga_beginner', name: 'Yoga Beginner', emoji: '🧘‍♀️', description: 'Complete 3 yoga activities', condition: (s) => s.yogaCompleted >= 3 },
+      { id: 'zen_master', name: 'Zen Master', emoji: '☯️', description: 'Complete 10 yoga activities', condition: (s) => s.yogaCompleted >= 10 },
+      { id: 'obstacle_runner', name: 'Obstacle Runner', emoji: '🏃', description: 'Complete 3 obstacle courses', condition: (s) => s.obstacleCompleted >= 3 },
+      { id: 'ninja_warrior', name: 'Ninja Warrior', emoji: '🥷', description: 'Complete 10 obstacle courses', condition: (s) => s.obstacleCompleted >= 10 },
     ];
 
-    // Equipment options
     const EQUIPMENT_OPTIONS = [
-      { id: 'cones', name: 'Saucer Cones', emoji: '🔶' },
-      { id: 'foam_balls', name: 'Small Foam Balls', emoji: '🔴' },
-      { id: 'plyo_6', name: 'Plyo Box 6"', emoji: '📦' },
-      { id: 'plyo_12', name: 'Plyo Box 12"', emoji: '📦' },
-      { id: 'plyo_18', name: 'Plyo Box 18"', emoji: '📦' },
-      { id: 'bosu', name: 'Bosu Ball', emoji: '🔵' },
-      { id: 'yoga_mat', name: 'Yoga Mat', emoji: '🧘' },
-      { id: 'yoga_blocks', name: 'Yoga Blocks', emoji: '🧱' },
-      { id: 'weights', name: 'Light Weights', emoji: '🏋️' },
-      { id: 'balance_beam', name: 'Balance Beam', emoji: '➖' },
-      { id: 'barre', name: 'Ballet Barre', emoji: '🩰' },
-      { id: 'stepping_stones', name: 'Stepping Stones', emoji: '🪨' },
-      { id: 'blankets', name: 'Blankets', emoji: '🛏️' },
-      { id: 'spotify', name: 'Music (Spotify)', emoji: '🎵' },
-      { id: 'lights', name: 'Lights On/Off', emoji: '💡' },
+      { id: 'cones', name: 'Saucer Cones', emoji: '🔶' }, { id: 'foam_balls', name: 'Foam Balls', emoji: '🔴' },
+      { id: 'plyo_6', name: 'Plyo Box 6"', emoji: '📦' }, { id: 'plyo_12', name: 'Plyo Box 12"', emoji: '📦' },
+      { id: 'plyo_18', name: 'Plyo Box 18"', emoji: '📦' }, { id: 'bosu', name: 'Bosu Ball', emoji: '🔵' },
+      { id: 'yoga_mat', name: 'Yoga Mat', emoji: '🧘' }, { id: 'yoga_blocks', name: 'Yoga Blocks', emoji: '🧱' },
+      { id: 'weights', name: 'Light Weights', emoji: '🏋️' }, { id: 'balance_beam', name: 'Balance Beam', emoji: '➖' },
+      { id: 'barre', name: 'Ballet Barre', emoji: '🩰' }, { id: 'stepping_stones', name: 'Stepping Stones', emoji: '🪨' },
+      { id: 'blankets', name: 'Blankets', emoji: '🛏️' }, { id: 'spotify', name: 'Music', emoji: '🎵' }, { id: 'lights', name: 'Lights', emoji: '💡' },
     ];
 
-    // Activity library - 45+ fun themed activities
     const ACTIVITY_LIBRARY = [
-      // Jumping activities
       { id: 1, name: 'T-Rex Stomps', description: 'Stomp around like a mighty T-Rex! Do 10 big stomping jumps.', equipment: [], minAge: 3, maxAge: 12, points: 15, duration: '2 min', difficulty: 'Easy', category: 'jump', tags: ['jump', 'cardio'] },
-      { id: 2, name: 'Frog Pond Hop', description: 'Hop from stone to stone like a frog! Jump to each stepping stone and back.', equipment: ['stepping_stones'], minAge: 3, maxAge: 10, points: 20, duration: '3 min', difficulty: 'Easy', category: 'jump', tags: ['jump', 'coordination'] },
-      { id: 3, name: 'Kangaroo Box Jumps', description: 'Jump up onto the plyo box like a kangaroo, then hop back down. Do 8 jumps!', equipment: ['plyo_6'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'strength'] },
-      { id: 4, name: 'Grasshopper Challenge', description: 'How many jumps can you do in 30 seconds? Jump over the cones!', equipment: ['cones'], minAge: 4, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'speed'] },
-      { id: 5, name: 'Dinosaur Escape', description: 'A meteor is coming! Jump and run through the cone obstacle course as fast as you can!', equipment: ['cones'], minAge: 4, maxAge: 12, points: 30, duration: '4 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'cardio', 'team'] },
-
-      // Balance activities
-      { id: 6, name: 'Flamingo Stand', description: 'Stand on one leg like a flamingo! Hold for 20 seconds on each leg.', equipment: [], minAge: 3, maxAge: 12, points: 15, duration: '2 min', difficulty: 'Easy', category: 'balance', tags: ['balance'] },
-      { id: 7, name: 'Tightrope Walker', description: 'Walk across the balance beam like a circus performer! Try not to fall off.', equipment: ['balance_beam'], minAge: 3, maxAge: 10, points: 20, duration: '3 min', difficulty: 'Easy', category: 'balance', tags: ['balance', 'coordination'] },
-      { id: 8, name: 'Surfing Dino', description: 'Stand on the Bosu ball and pretend you\'re surfing a wave! Hold your balance for 30 seconds.', equipment: ['bosu'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'core'] },
-      { id: 9, name: 'Eagle Pose Challenge', description: 'Do the yoga eagle pose! Wrap your arms and legs like an eagle perched on a branch.', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'flexibility'] },
-      { id: 10, name: 'Stepping Stone River', description: 'Cross the lava river by stepping only on the stones! Don\'t touch the floor!', equipment: ['stepping_stones'], minAge: 3, maxAge: 10, points: 25, duration: '4 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'coordination'] },
-      { id: 11, name: 'Stork Walk', description: 'Walk on the balance beam while holding a yoga block on your head!', equipment: ['balance_beam', 'yoga_blocks'], minAge: 5, maxAge: 12, points: 30, duration: '3 min', difficulty: 'Hard', category: 'balance', tags: ['balance', 'coordination'] },
-
-      // Strength activities
-      { id: 12, name: 'Bear Crawl Safari', description: 'Crawl like a bear around the room! Go around all the cones.', equipment: ['cones'], minAge: 3, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'cardio'] },
-      { id: 13, name: 'Gorilla Pounds', description: 'Beat your chest like a gorilla and do 10 big arm swings with the light weights!', equipment: ['weights'], minAge: 6, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength'] },
-      { id: 14, name: 'Crab Walk Race', description: 'Walk like a crab from one end of the room to the other! Race your family!', equipment: [], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'team'] },
-      { id: 15, name: 'Caterpillar Push-Ups', description: 'Start standing, walk your hands out to a push-up, do one push-up, walk back up! Do 5!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'flexibility'] },
-      { id: 16, name: 'Ant Lifts', description: 'Ants can lift 50x their weight! Do 10 weight lifts over your head.', equipment: ['weights'], minAge: 6, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'strength', tags: ['strength'] },
-      { id: 17, name: 'Inchworm Walk', description: 'Walk like an inchworm across the yoga mat! Hands stay still, feet walk up, then hands walk out.', equipment: ['yoga_mat'], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'flexibility'] },
-
-      // Dance & rhythm activities
-      { id: 18, name: 'Dino Dance Party', description: 'Turn on the music and dance like different dinosaurs! T-Rex arms, Pterodactyl flying, Raptor running!', equipment: ['spotify'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'dance', tags: ['cardio', 'team'] },
-      { id: 19, name: 'Freeze Dance Safari', description: 'Dance when the music plays, freeze like a statue when it stops! Best animal freeze wins!', equipment: ['spotify'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'dance', tags: ['cardio', 'team'] },
-      { id: 20, name: 'Ballet Butterfly', description: 'Hold the barre and do 10 beautiful butterfly pliés!', equipment: ['barre'], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Easy', category: 'dance', tags: ['balance', 'flexibility'] },
-      { id: 21, name: 'Disco Lights Workout', description: 'Turn the lights on and off while dancing! When lights are off, do slow-mo moves. Lights on, go fast!', equipment: ['spotify', 'lights'], minAge: 4, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'dance', tags: ['cardio', 'team'] },
-
-      // Obstacle courses
-      { id: 22, name: 'Jungle Expedition', description: 'Navigate through the jungle! Jump over boxes, weave through cones, balance on the beam!', equipment: ['plyo_6', 'cones', 'balance_beam'], minAge: 5, maxAge: 12, points: 40, duration: '6 min', difficulty: 'Medium', category: 'obstacle', tags: ['jump', 'balance', 'cardio'] },
-      { id: 23, name: 'Dinosaur Gauntlet', description: 'Escape the dinosaurs! Crawl under blankets, jump over boxes, run around cones!', equipment: ['blankets', 'plyo_6', 'cones'], minAge: 4, maxAge: 12, points: 35, duration: '5 min', difficulty: 'Medium', category: 'obstacle', tags: ['cardio', 'strength'] },
-      { id: 24, name: 'Bug Obstacle Course', description: 'Move like different bugs! Crawl like a beetle, hop like a cricket, flutter like a butterfly through the course!', equipment: ['cones', 'stepping_stones'], minAge: 3, maxAge: 10, points: 30, duration: '5 min', difficulty: 'Easy', category: 'obstacle', tags: ['cardio', 'coordination'] },
-      { id: 25, name: 'Mountain Climber Trail', description: 'Climb the mountain! Step up all the plyo boxes from small to big, then back down!', equipment: ['plyo_6', 'plyo_12', 'plyo_18'], minAge: 6, maxAge: 12, points: 35, duration: '4 min', difficulty: 'Hard', category: 'obstacle', tags: ['jump', 'strength'] },
-
-      // Target & throwing activities
-      { id: 26, name: 'Angry Birds', description: 'Knock down the targets! Stack yoga blocks and throw foam balls to knock them down.', equipment: ['foam_balls', 'yoga_blocks'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'target', tags: ['coordination', 'team'] },
-      { id: 27, name: 'Cone Bowling', description: 'Set up cones like bowling pins and roll the ball to knock them down! 3 frames!', equipment: ['cones', 'foam_balls'], minAge: 3, maxAge: 12, points: 20, duration: '5 min', difficulty: 'Easy', category: 'target', tags: ['coordination'] },
-      { id: 28, name: 'Pterodactyl Toss', description: 'Fly like a pterodactyl and toss the ball into targets! Throw from different distances.', equipment: ['foam_balls', 'cones'], minAge: 4, maxAge: 12, points: 25, duration: '4 min', difficulty: 'Medium', category: 'target', tags: ['coordination'] },
-
-      // Yoga & flexibility
-      { id: 29, name: 'Zoo Yoga', description: 'Do yoga poses named after animals! Cat, cow, downward dog, cobra, and butterfly!', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 20, duration: '5 min', difficulty: 'Easy', category: 'yoga', tags: ['flexibility', 'balance'] },
-      { id: 30, name: 'Dinosaur Stretches', description: 'Stretch like dinosaurs! Long neck stretch, T-Rex arm reaches, tail swings!', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 15, duration: '4 min', difficulty: 'Easy', category: 'yoga', tags: ['flexibility'] },
-      { id: 31, name: 'Pretzel Pose Challenge', description: 'Can you twist like a pretzel? Try these twisty yoga poses!', equipment: ['yoga_mat', 'yoga_blocks'], minAge: 5, maxAge: 12, points: 25, duration: '4 min', difficulty: 'Medium', category: 'yoga', tags: ['flexibility', 'balance'] },
-      { id: 32, name: 'Partner Yoga Safari', description: 'Do yoga poses with a partner! Create animal shapes together!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'yoga', tags: ['flexibility', 'team'] },
-
-      // Games & challenges
-      { id: 33, name: 'Hot Lava Floor', description: 'The floor is lava! Use stepping stones, the balance beam, and boxes to cross the room!', equipment: ['stepping_stones', 'balance_beam', 'plyo_6'], minAge: 4, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'game', tags: ['balance', 'jump', 'team'] },
-      { id: 34, name: 'Animal Charades Workout', description: 'Act out an animal while doing that animal\'s exercise! Others guess while you workout!', equipment: [], minAge: 4, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
-      { id: 35, name: 'Simon Says Safari', description: 'Play Simon Says with animal movements! Simon says hop like a bunny!', equipment: [], minAge: 3, maxAge: 10, points: 20, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
-      { id: 36, name: 'Musical Stepping Stones', description: 'Walk on stepping stones while music plays. When it stops, freeze on a stone!', equipment: ['stepping_stones', 'spotify'], minAge: 3, maxAge: 10, points: 25, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['balance', 'team'] },
-      { id: 37, name: 'Blanket Fort Fitness', description: 'Build a fort and do exercises inside and around it! Crawl through tunnels, do sit-ups inside!', equipment: ['blankets'], minAge: 3, maxAge: 10, points: 30, duration: '10 min', difficulty: 'Easy', category: 'game', tags: ['strength', 'team'] },
-      { id: 38, name: 'Treasure Hunt Workout', description: 'Hide foam balls around the room. Do 5 jumping jacks each time you find one!', equipment: ['foam_balls'], minAge: 3, maxAge: 10, points: 30, duration: '8 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
-
-      // Cool down activities
-      { id: 39, name: 'Sleepy Sloth', description: 'Slow down like a sleepy sloth. Do gentle stretches and deep breaths.', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 10, duration: '3 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
-      { id: 40, name: 'Hibernating Bear', description: 'Time to rest! Lie on the mat, close your eyes, and take 10 deep breaths.', equipment: ['yoga_mat', 'blankets'], minAge: 3, maxAge: 12, points: 10, duration: '3 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
-      { id: 41, name: 'Butterfly Wings', description: 'Sit in butterfly pose and gently flap your wings. Breathe slowly and stretch.', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 10, duration: '2 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
-
-      // Advanced challenges
-      { id: 42, name: 'Ninja Warrior Course', description: 'The ultimate challenge! Combine all obstacles into one mega course!', equipment: ['plyo_6', 'plyo_12', 'balance_beam', 'cones', 'stepping_stones'], minAge: 6, maxAge: 12, points: 50, duration: '8 min', difficulty: 'Hard', category: 'obstacle', tags: ['jump', 'balance', 'strength', 'cardio'] },
-      { id: 43, name: 'Bosu Balance Master', description: 'Stand on the Bosu and catch foam balls thrown to you! Catch 10 without falling!', equipment: ['bosu', 'foam_balls'], minAge: 6, maxAge: 12, points: 35, duration: '4 min', difficulty: 'Hard', category: 'balance', tags: ['balance', 'coordination', 'team'] },
-      { id: 44, name: 'Plyo Power Challenge', description: 'Jump up and down all three plyo boxes in a row! See how many rounds in 2 minutes!', equipment: ['plyo_6', 'plyo_12', 'plyo_18'], minAge: 7, maxAge: 12, points: 40, duration: '3 min', difficulty: 'Hard', category: 'jump', tags: ['jump', 'strength', 'cardio'] },
-      { id: 45, name: 'Barre Workout', description: 'Hold the barre and do leg lifts, pliés, and relevés like a real dancer!', equipment: ['barre'], minAge: 5, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'balance', 'flexibility'] },
+      { id: 2, name: 'Frog Pond Hop', description: 'Hop from stone to stone like a frog!', equipment: ['stepping_stones'], minAge: 3, maxAge: 10, points: 20, duration: '3 min', difficulty: 'Easy', category: 'jump', tags: ['jump', 'coordination'] },
+      { id: 3, name: 'Kangaroo Box Jumps', description: 'Jump up onto the plyo box like a kangaroo!', equipment: ['plyo_6'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'strength'] },
+      { id: 4, name: 'Grasshopper Challenge', description: 'How many jumps can you do in 30 seconds?', equipment: ['cones'], minAge: 4, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'speed'] },
+      { id: 5, name: 'Dinosaur Escape', description: 'A meteor is coming! Run through the cone obstacle course!', equipment: ['cones'], minAge: 4, maxAge: 12, points: 30, duration: '4 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'cardio', 'team'] },
+      { id: 6, name: 'Flamingo Stand', description: 'Stand on one leg like a flamingo! Hold for 20 seconds.', equipment: [], minAge: 3, maxAge: 12, points: 15, duration: '2 min', difficulty: 'Easy', category: 'balance', tags: ['balance'] },
+      { id: 7, name: 'Tightrope Walker', description: 'Walk across the balance beam like a circus performer!', equipment: ['balance_beam'], minAge: 3, maxAge: 10, points: 20, duration: '3 min', difficulty: 'Easy', category: 'balance', tags: ['balance', 'coordination'] },
+      { id: 8, name: 'Surfing Dino', description: 'Stand on the Bosu ball like surfing a wave!', equipment: ['bosu'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'core'] },
+      { id: 9, name: 'Eagle Pose Challenge', description: 'Do the yoga eagle pose!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'flexibility'] },
+      { id: 10, name: 'Stepping Stone River', description: 'Cross the lava river stepping only on stones!', equipment: ['stepping_stones'], minAge: 3, maxAge: 10, points: 25, duration: '4 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'coordination'] },
+      { id: 11, name: 'Stork Walk', description: 'Walk on beam with a yoga block on your head!', equipment: ['balance_beam', 'yoga_blocks'], minAge: 5, maxAge: 12, points: 30, duration: '3 min', difficulty: 'Hard', category: 'balance', tags: ['balance', 'coordination'] },
+      { id: 12, name: 'Bear Crawl Safari', description: 'Crawl like a bear around the room!', equipment: ['cones'], minAge: 3, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'cardio'] },
+      { id: 13, name: 'Gorilla Pounds', description: 'Beat your chest and do arm swings with weights!', equipment: ['weights'], minAge: 6, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength'] },
+      { id: 14, name: 'Crab Walk Race', description: 'Walk like a crab across the room! Race your family!', equipment: [], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'team'] },
+      { id: 15, name: 'Caterpillar Push-Ups', description: 'Walk hands out to push-up, do one, walk back up!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'flexibility'] },
+      { id: 16, name: 'Ant Lifts', description: 'Ants lift 50x their weight! Do 10 lifts over your head.', equipment: ['weights'], minAge: 6, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'strength', tags: ['strength'] },
+      { id: 17, name: 'Inchworm Walk', description: 'Walk like an inchworm across the yoga mat!', equipment: ['yoga_mat'], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'flexibility'] },
+      { id: 18, name: 'Dino Dance Party', description: 'Dance like different dinosaurs to the music!', equipment: ['spotify'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'dance', tags: ['cardio', 'team'] },
+      { id: 19, name: 'Freeze Dance Safari', description: 'Dance when music plays, freeze when it stops!', equipment: ['spotify'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'dance', tags: ['cardio', 'team'] },
+      { id: 20, name: 'Ballet Butterfly', description: 'Hold the barre and do 10 butterfly pliés!', equipment: ['barre'], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Easy', category: 'dance', tags: ['balance', 'flexibility'] },
+      { id: 21, name: 'Disco Lights Workout', description: 'Lights off = slow-mo, lights on = fast moves!', equipment: ['spotify', 'lights'], minAge: 4, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'dance', tags: ['cardio', 'team'] },
+      { id: 22, name: 'Jungle Expedition', description: 'Navigate the jungle! Jump, weave, balance!', equipment: ['plyo_6', 'cones', 'balance_beam'], minAge: 5, maxAge: 12, points: 40, duration: '6 min', difficulty: 'Medium', category: 'obstacle', tags: ['jump', 'balance', 'cardio'] },
+      { id: 23, name: 'Dinosaur Gauntlet', description: 'Escape the dinosaurs through the obstacle course!', equipment: ['blankets', 'plyo_6', 'cones'], minAge: 4, maxAge: 12, points: 35, duration: '5 min', difficulty: 'Medium', category: 'obstacle', tags: ['cardio', 'strength'] },
+      { id: 24, name: 'Bug Obstacle Course', description: 'Move like different bugs through the course!', equipment: ['cones', 'stepping_stones'], minAge: 3, maxAge: 10, points: 30, duration: '5 min', difficulty: 'Easy', category: 'obstacle', tags: ['cardio', 'coordination'] },
+      { id: 25, name: 'Mountain Climber Trail', description: 'Climb the mountain! Step up all the plyo boxes!', equipment: ['plyo_6', 'plyo_12', 'plyo_18'], minAge: 6, maxAge: 12, points: 35, duration: '4 min', difficulty: 'Hard', category: 'obstacle', tags: ['jump', 'strength'] },
+      { id: 26, name: 'Angry Birds', description: 'Stack yoga blocks and throw balls to knock them down!', equipment: ['foam_balls', 'yoga_blocks'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'target', tags: ['coordination', 'team'] },
+      { id: 27, name: 'Cone Bowling', description: 'Set up cones like bowling pins and roll!', equipment: ['cones', 'foam_balls'], minAge: 3, maxAge: 12, points: 20, duration: '5 min', difficulty: 'Easy', category: 'target', tags: ['coordination'] },
+      { id: 28, name: 'Pterodactyl Toss', description: 'Fly like a pterodactyl and toss the ball!', equipment: ['foam_balls', 'cones'], minAge: 4, maxAge: 12, points: 25, duration: '4 min', difficulty: 'Medium', category: 'target', tags: ['coordination'] },
+      { id: 29, name: 'Zoo Yoga', description: 'Do yoga poses named after animals!', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 20, duration: '5 min', difficulty: 'Easy', category: 'yoga', tags: ['flexibility', 'balance'] },
+      { id: 30, name: 'Dinosaur Stretches', description: 'Stretch like dinosaurs! Long neck, T-Rex arms!', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 15, duration: '4 min', difficulty: 'Easy', category: 'yoga', tags: ['flexibility'] },
+      { id: 31, name: 'Pretzel Pose Challenge', description: 'Can you twist like a pretzel?', equipment: ['yoga_mat', 'yoga_blocks'], minAge: 5, maxAge: 12, points: 25, duration: '4 min', difficulty: 'Medium', category: 'yoga', tags: ['flexibility', 'balance'] },
+      { id: 32, name: 'Partner Yoga Safari', description: 'Do yoga poses with a partner!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'yoga', tags: ['flexibility', 'team'] },
+      { id: 33, name: 'Hot Lava Floor', description: 'The floor is lava! Use equipment to cross!', equipment: ['stepping_stones', 'balance_beam', 'plyo_6'], minAge: 4, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'game', tags: ['balance', 'jump', 'team'] },
+      { id: 34, name: 'Animal Charades Workout', description: 'Act out animals while exercising!', equipment: [], minAge: 4, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
+      { id: 35, name: 'Simon Says Safari', description: 'Simon Says with animal movements!', equipment: [], minAge: 3, maxAge: 10, points: 20, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
+      { id: 36, name: 'Musical Stepping Stones', description: 'Walk on stones, freeze when music stops!', equipment: ['stepping_stones', 'spotify'], minAge: 3, maxAge: 10, points: 25, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['balance', 'team'] },
+      { id: 37, name: 'Blanket Fort Fitness', description: 'Build a fort and exercise in it!', equipment: ['blankets'], minAge: 3, maxAge: 10, points: 30, duration: '10 min', difficulty: 'Easy', category: 'game', tags: ['strength', 'team'] },
+      { id: 38, name: 'Treasure Hunt Workout', description: 'Find hidden balls, do jumping jacks each time!', equipment: ['foam_balls'], minAge: 3, maxAge: 10, points: 30, duration: '8 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
+      { id: 39, name: 'Sleepy Sloth', description: 'Slow down like a sleepy sloth. Gentle stretches.', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 10, duration: '3 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
+      { id: 40, name: 'Hibernating Bear', description: 'Lie down, close eyes, take 10 deep breaths.', equipment: ['yoga_mat', 'blankets'], minAge: 3, maxAge: 12, points: 10, duration: '3 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
+      { id: 41, name: 'Butterfly Wings', description: 'Sit in butterfly pose and gently flap.', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 10, duration: '2 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
+      { id: 42, name: 'Ninja Warrior Course', description: 'The ultimate challenge! Mega obstacle course!', equipment: ['plyo_6', 'plyo_12', 'balance_beam', 'cones', 'stepping_stones'], minAge: 6, maxAge: 12, points: 50, duration: '8 min', difficulty: 'Hard', category: 'obstacle', tags: ['jump', 'balance', 'strength', 'cardio'] },
+      { id: 43, name: 'Bosu Balance Master', description: 'Stand on Bosu and catch balls thrown to you!', equipment: ['bosu', 'foam_balls'], minAge: 6, maxAge: 12, points: 35, duration: '4 min', difficulty: 'Hard', category: 'balance', tags: ['balance', 'coordination', 'team'] },
+      { id: 44, name: 'Plyo Power Challenge', description: 'Jump up all three plyo boxes in a row!', equipment: ['plyo_6', 'plyo_12', 'plyo_18'], minAge: 7, maxAge: 12, points: 40, duration: '3 min', difficulty: 'Hard', category: 'jump', tags: ['jump', 'strength', 'cardio'] },
+      { id: 45, name: 'Barre Workout', description: 'Hold the barre for leg lifts and pliés!', equipment: ['barre'], minAge: 5, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'balance', 'flexibility'] },
     ];
 
-    // Confetti component
     const Confetti = ({ active }) => {
       if (!active) return null;
-      const confettiPieces = Array.from({ length: 50 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        delay: Math.random() * 2,
-        color: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181', '#aa96da', '#fcbad3'][Math.floor(Math.random() * 7)],
-        size: Math.random() * 10 + 5,
-      }));
-      return (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1000, overflow: 'hidden' }}>
-          {confettiPieces.map(piece => (
-            <div key={piece.id} style={{
-              position: 'absolute', left: `${piece.left}%`, top: '-20px',
-              width: `${piece.size}px`, height: `${piece.size}px`,
-              backgroundColor: piece.color, borderRadius: piece.id % 2 === 0 ? '50%' : '0',
-              animation: `confettiFall 3s ease-out ${piece.delay}s forwards`,
-            }} />
-          ))}
-        </div>
-      );
+      const pieces = Array.from({ length: 60 }, (_, i) => ({ id: i, left: Math.random() * 100, delay: Math.random() * 2, color: ['#00ffff', '#ff00ff', '#ffff00', '#00ff00', '#ff0080'][Math.floor(Math.random() * 5)], size: Math.random() * 12 + 6 }));
+      return (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1001, overflow: 'hidden' }}>{pieces.map(p => (<div key={p.id} style={{ position: 'absolute', left: `${p.left}%`, top: '-20px', width: `${p.size}px`, height: `${p.size}px`, backgroundColor: p.color, borderRadius: p.id % 2 === 0 ? '50%' : '0', animation: `confettiFall 3s ease-out ${p.delay}s forwards`, boxShadow: `0 0 10px ${p.color}` }} />))}</div>);
     };
 
-    // Points popup that appears after completing
     const PointsPopup = ({ points, participantName, onClose }) => {
-      useEffect(() => {
-        const timer = setTimeout(onClose, 1500);
-        return () => clearTimeout(timer);
-      }, [onClose]);
-
-      return (
-        <div style={{
-          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '20px', padding: '30px 50px', textAlign: 'center',
-          animation: 'popIn 0.3s ease-out', zIndex: 998, color: 'white',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎉</div>
-          <div style={{ fontSize: '18px', marginBottom: '4px' }}>{participantName}</div>
-          <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#ffe66d' }}>+{points} XP!</div>
-        </div>
-      );
+      useEffect(() => { const t = setTimeout(onClose, 1500); return () => clearTimeout(t); }, [onClose]);
+      return (<div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,40,0.95) 100%)', border: '3px solid #00ffff', borderRadius: '20px', padding: '40px 60px', textAlign: 'center', animation: 'popIn 0.3s ease-out', zIndex: 1002, boxShadow: '0 0 40px #00ffff' }}><div style={{ fontSize: '56px', marginBottom: '12px', animation: 'float 1s ease-in-out infinite' }}>🎉</div><div style={{ fontSize: '20px', marginBottom: '8px', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{participantName}</div><div style={{ fontSize: '42px', fontWeight: 'bold', color: '#ffff00', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ffff00' }}>+{points} XP!</div></div>);
     };
 
-    // Badge popup
     const BadgePopup = ({ badge, onClose }) => {
       if (!badge) return null;
-      return (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={onClose}>
-          <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '300px' }}>
-            <div style={{ fontSize: '80px', marginBottom: '16px' }}>{badge.emoji}</div>
-            <h2 style={{ color: 'white', margin: '0 0 8px 0', fontSize: '24px' }}>Badge Unlocked!</h2>
-            <h3 style={{ color: '#ffe66d', margin: '0 0 16px 0', fontSize: '28px' }}>{badge.name}</h3>
-            <p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '16px' }}>{badge.description}</p>
-            <button onClick={onClose} style={{ marginTop: '24px', padding: '12px 32px', fontSize: '16px', fontWeight: 'bold', border: 'none', borderRadius: '25px', background: '#ffe66d', color: '#764ba2', cursor: 'pointer' }}>Awesome! 🎉</button>
-          </div>
-        </div>
-      );
+      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1002 }} onClick={onClose}><div style={{ background: 'linear-gradient(135deg, rgba(0,20,40,0.98) 0%, rgba(20,0,40,0.98) 100%)', border: '3px solid #ff00ff', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '320px', boxShadow: '0 0 60px #ff00ff' }}><div style={{ fontSize: '80px', marginBottom: '16px', filter: 'drop-shadow(0 0 20px #ff00ff)' }}>{badge.emoji}</div><h2 style={{ color: '#ff00ff', margin: '0 0 8px 0', fontSize: '24px', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ff00ff' }}>BADGE UNLOCKED!</h2><h3 style={{ color: '#00ffff', margin: '0 0 16px 0', fontSize: '28px', fontFamily: 'Orbitron, sans-serif' }}>{badge.name}</h3><p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '16px' }}>{badge.description}</p><button onClick={onClose} style={{ marginTop: '24px', padding: '14px 36px', fontSize: '16px', fontWeight: 'bold', border: '2px solid #00ffff', borderRadius: '25px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>AWESOME!</button></div></div>);
     };
 
-    // Level up popup
     const LevelUpPopup = ({ level, onClose }) => {
       if (!level) return null;
-      return (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={onClose}>
-          <div style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '300px' }}>
-            <div style={{ fontSize: '80px', marginBottom: '16px' }}>{level.emoji}</div>
-            <h2 style={{ color: 'white', margin: '0 0 8px 0', fontSize: '24px' }}>LEVEL UP!</h2>
-            <h3 style={{ color: '#ffe66d', margin: '0 0 16px 0', fontSize: '32px' }}>Level {level.level}</h3>
-            <p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '20px' }}>You are now a {level.name}!</p>
-            <button onClick={onClose} style={{ marginTop: '24px', padding: '12px 32px', fontSize: '16px', fontWeight: 'bold', border: 'none', borderRadius: '25px', background: '#ffe66d', color: '#f5576c', cursor: 'pointer' }}>Let's Go! 🚀</button>
-          </div>
-        </div>
-      );
+      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1002 }} onClick={onClose}><div style={{ background: 'linear-gradient(135deg, rgba(40,20,0,0.98) 0%, rgba(40,0,20,0.98) 100%)', border: '3px solid #ffff00', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '320px', boxShadow: '0 0 60px #ffff00' }}><div style={{ fontSize: '80px', marginBottom: '16px', filter: 'drop-shadow(0 0 20px #ffff00)', animation: 'float 1s ease-in-out infinite' }}>{level.emoji}</div><h2 style={{ color: '#ffff00', margin: '0 0 8px 0', fontSize: '28px', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ffff00' }}>LEVEL UP!</h2><h3 style={{ color: '#00ffff', margin: '0 0 16px 0', fontSize: '32px', fontFamily: 'Orbitron, sans-serif' }}>Level {level.level}</h3><p style={{ color: '#ff00ff', margin: 0, fontSize: '22px', fontFamily: 'Orbitron, sans-serif' }}>{level.name}</p><button onClick={onClose} style={{ marginTop: '24px', padding: '14px 36px', fontSize: '16px', fontWeight: 'bold', border: '2px solid #ffff00', borderRadius: '25px', background: 'transparent', color: '#ffff00', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>LET'S GO!</button></div></div>);
     };
 
-    // Spinning Wheel for Random Activity
     const SpinningWheel = ({ activities, onComplete, onClose }) => {
       const [spinning, setSpinning] = useState(true);
       const [currentIndex, setCurrentIndex] = useState(0);
@@ -295,255 +209,54 @@
 
       useEffect(() => {
         if (!spinning) return;
-
-        let speed = 50;
-        let iterations = 0;
+        let speed = 50, iterations = 0;
         const maxIterations = 30 + Math.floor(Math.random() * 20);
-
         const spin = () => {
           iterations++;
           setCurrentIndex(prev => (prev + 1) % activities.length);
-
-          if (iterations >= maxIterations) {
-            setSpinning(false);
-            const finalIndex = Math.floor(Math.random() * activities.length);
-            setCurrentIndex(finalIndex);
-            setSelectedActivity(activities[finalIndex]);
-            setTimeout(() => setShowResult(true), 500);
-            return;
-          }
-
-          // Slow down gradually
+          if (iterations >= maxIterations) { setSpinning(false); const finalIndex = Math.floor(Math.random() * activities.length); setCurrentIndex(finalIndex); setSelectedActivity(activities[finalIndex]); setTimeout(() => setShowResult(true), 500); return; }
           speed = Math.min(speed + (iterations > maxIterations - 10 ? 30 : 5), 400);
           setTimeout(spin, speed);
         };
-
         const timer = setTimeout(spin, speed);
         return () => clearTimeout(timer);
       }, []);
 
       const visibleActivities = [];
-      for (let i = -2; i <= 2; i++) {
-        const idx = (currentIndex + i + activities.length) % activities.length;
-        visibleActivities.push({ activity: activities[idx], offset: i });
-      }
+      for (let i = -2; i <= 2; i++) { const idx = (currentIndex + i + activities.length) % activities.length; visibleActivities.push({ activity: activities[idx], offset: i }); }
 
-      return (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 999, flexDirection: 'column'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <h2 style={{ color: 'white', fontSize: '28px', margin: 0 }}>
-              {spinning ? '🎲 Spinning...' : '🎯 Your Challenge!'}
-            </h2>
-          </div>
-
-          <div style={{
-            position: 'relative', height: '300px', width: '100%', maxWidth: '400px',
-            overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            {/* Selection indicator */}
-            <div style={{
-              position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-              width: '90%', height: '60px', border: '3px solid #ffe66d',
-              borderRadius: '12px', zIndex: 2, pointerEvents: 'none',
-              boxShadow: '0 0 20px rgba(255, 230, 109, 0.5)'
-            }} />
-
-            {/* Activity slots */}
-            <div style={{ position: 'relative', width: '100%' }}>
-              {visibleActivities.map(({ activity, offset }, idx) => (
-                <div key={idx} style={{
-                  position: 'absolute', left: '50%', width: '85%',
-                  transform: `translateX(-50%) translateY(${offset * 65}px)`,
-                  transition: spinning ? 'none' : 'all 0.3s ease-out',
-                  opacity: offset === 0 ? 1 : 0.4,
-                  padding: '12px 20px',
-                  background: offset === 0 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(255,255,255,0.1)',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: offset === 0 ? '18px' : '14px' }}>
-                    {activity.name}
-                  </div>
-                  {offset === 0 && (
-                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px', marginTop: '4px' }}>
-                      +{activity.points} XP • {activity.difficulty}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {showResult && (
-            <div style={{ marginTop: '30px', display: 'flex', gap: '16px' }}>
-              <button onClick={() => onComplete(selectedActivity)} style={{
-                padding: '16px 32px', fontSize: '18px', fontWeight: 'bold',
-                border: 'none', borderRadius: '30px',
-                background: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)',
-                color: 'white', cursor: 'pointer'
-              }}>
-                Let's Do It! 🚀
-              </button>
-              <button onClick={onClose} style={{
-                padding: '16px 32px', fontSize: '18px', fontWeight: 'bold',
-                border: '2px solid white', borderRadius: '30px',
-                background: 'transparent', color: 'white', cursor: 'pointer'
-              }}>
-                Spin Again 🎲
-              </button>
-            </div>
-          )}
+      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1002, flexDirection: 'column' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}><h2 style={{ color: '#00ffff', fontSize: '32px', margin: 0, fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>{spinning ? '🎲 SCANNING...' : '🎯 MISSION SELECTED!'}</h2></div>
+        <div style={{ position: 'relative', height: '300px', width: '100%', maxWidth: '420px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '92%', height: '65px', border: '3px solid #00ffff', borderRadius: '12px', zIndex: 2, pointerEvents: 'none', boxShadow: '0 0 30px #00ffff', animation: 'neonPulse 1s ease-in-out infinite' }} />
+          <div style={{ position: 'relative', width: '100%' }}>{visibleActivities.map(({ activity, offset }, idx) => (<div key={idx} style={{ position: 'absolute', left: '50%', width: '88%', transform: `translateX(-50%) translateY(${offset * 68}px)`, transition: spinning ? 'none' : 'all 0.3s ease-out', opacity: offset === 0 ? 1 : 0.3, padding: '14px 20px', background: offset === 0 ? 'linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(255,0,255,0.2) 100%)' : 'rgba(255,255,255,0.05)', border: offset === 0 ? '2px solid #ff00ff' : '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', textAlign: 'center' }}><div style={{ color: offset === 0 ? '#fff' : '#888', fontWeight: 'bold', fontSize: offset === 0 ? '18px' : '14px' }}>{activity.name}</div>{offset === 0 && (<div style={{ color: '#00ffff', fontSize: '13px', marginTop: '4px', fontFamily: 'Orbitron, sans-serif' }}>+{activity.points} XP • {activity.difficulty}</div>)}</div>))}</div>
         </div>
-      );
+        {showResult && (<div style={{ marginTop: '30px', display: 'flex', gap: '16px' }}><button onClick={() => onComplete(selectedActivity)} className="arcade-btn" style={{ padding: '16px 32px', fontSize: '16px', border: '2px solid #00ff00', borderRadius: '30px', background: 'transparent', color: '#00ff00', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 20px rgba(0,255,0,0.3)' }}>LAUNCH! 🚀</button><button onClick={onClose} className="arcade-btn" style={{ padding: '16px 32px', fontSize: '16px', border: '2px solid #ff00ff', borderRadius: '30px', background: 'transparent', color: '#ff00ff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 20px rgba(255,0,255,0.3)' }}>RESCAN 🎲</button></div>)}
+      </div>);
     };
 
-    // Activity card with one-click completion buttons
     const ActivityCard = ({ activity, isFavorite, onToggleFavorite, onComplete, availableEquipment, participants, activityNotes, onUpdateNote }) => {
       const [showNoteInput, setShowNoteInput] = useState(false);
       const [noteText, setNoteText] = useState(activityNotes[activity.id] || '');
       const hasAllEquipment = activity.equipment.every(eq => availableEquipment.includes(eq));
       const missingEquipment = activity.equipment.filter(eq => !availableEquipment.includes(eq));
-      const difficultyColors = { 'Easy': '#4ecdc4', 'Medium': '#ffe66d', 'Hard': '#ff6b6b' };
+      const difficultyColors = { 'Easy': '#00ff00', 'Medium': '#ffff00', 'Hard': '#ff0000' };
+      const handleSaveNote = () => { onUpdateNote(activity.id, noteText); setShowNoteInput(false); };
 
-      const handleSaveNote = () => {
-        onUpdateNote(activity.id, noteText);
-        setShowNoteInput(false);
-      };
-
-      return (
-        <div style={{ background: 'white', borderRadius: '16px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', opacity: hasAllEquipment ? 1 : 0.6, border: hasAllEquipment ? '2px solid transparent' : '2px dashed #ccc' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-            <div>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', color: '#2d3748' }}>{activity.name}</h3>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: difficultyColors[activity.difficulty], color: activity.difficulty === 'Medium' ? '#2d3748' : 'white' }}>{activity.difficulty}</span>
-                <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: '#e2e8f0', color: '#4a5568' }}>{activity.duration}</span>
-                <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: '#c6f6d5', color: '#276749', fontWeight: 'bold' }}>+{activity.points} XP</span>
-              </div>
-            </div>
-            <button onClick={() => onToggleFavorite(activity.id)} style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', padding: '4px' }}>{isFavorite ? '❤️' : '🤍'}</button>
-          </div>
-          <p style={{ color: '#4a5568', marginBottom: '12px', lineHeight: '1.5' }}>{activity.description}</p>
-          {activity.equipment.length > 0 && (
-            <div style={{ marginBottom: '12px' }}>
-              <span style={{ fontSize: '14px', color: '#718096' }}>Equipment: </span>
-              {activity.equipment.map(eq => {
-                const equipment = EQUIPMENT_OPTIONS.find(e => e.id === eq);
-                const isMissing = missingEquipment.includes(eq);
-                return <span key={eq} style={{ display: 'inline-block', padding: '4px 8px', margin: '2px 4px', borderRadius: '8px', fontSize: '12px', backgroundColor: isMissing ? '#fed7d7' : '#e2e8f0', color: isMissing ? '#c53030' : '#4a5568' }}>{equipment?.emoji} {equipment?.name}</span>;
-              })}
-            </div>
-          )}
-          <div style={{ fontSize: '14px', color: '#718096', marginBottom: '16px' }}>Ages {activity.minAge}-{activity.maxAge}</div>
-
-          {/* One-click completion buttons */}
-          {hasAllEquipment && participants.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '14px', color: '#718096', marginBottom: '8px' }}>Tap to complete:</div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {participants.map(p => {
-                  const avatar = AVATARS.find(a => a.id === p.avatar);
-                  const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0];
-                  return (
-                    <button
-                      key={p.id}
-                      className="participant-btn"
-                      onClick={() => onComplete(activity, p.id)}
-                      style={{
-                        padding: '10px 16px',
-                        borderRadius: '25px',
-                        border: 'none',
-                        background: color.gradient,
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <span>{avatar?.emoji}</span>
-                      <span>{p.name}</span>
-                    </button>
-                  );
-                })}
-                {participants.length > 1 && (
-                  <button
-                    className="participant-btn"
-                    onClick={() => onComplete(activity, 'ALL')}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: '25px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <span>👨‍👩‍👧‍👦</span>
-                    <span>ALL</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {!hasAllEquipment && (
-            <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: '#fff5f5', color: '#c53030', fontSize: '14px', marginBottom: '16px' }}>⚠️ Missing equipment - enable in Settings</div>
-          )}
-
-          {/* Notes/Suggestions section */}
-          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
-            {!showNoteInput ? (
-              <button
-                onClick={() => setShowNoteInput(true)}
-                style={{
-                  background: 'none', border: '1px dashed #cbd5e0', borderRadius: '8px',
-                  padding: '8px 16px', color: '#718096', fontSize: '14px', cursor: 'pointer',
-                  width: '100%', textAlign: 'left'
-                }}
-              >
-                {activityNotes[activity.id] ? `📝 ${activityNotes[activity.id]}` : '💡 Add suggestion or note...'}
-              </button>
-            ) : (
-              <div>
-                <textarea
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  placeholder="Add your suggestions, variations, or notes for this activity..."
-                  style={{
-                    width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #667eea',
-                    fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box'
-                  }}
-                />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button onClick={handleSaveNote} style={{
-                    padding: '8px 16px', borderRadius: '8px', border: 'none',
-                    background: '#667eea', color: 'white', fontWeight: 'bold', cursor: 'pointer'
-                  }}>Save</button>
-                  <button onClick={() => { setShowNoteInput(false); setNoteText(activityNotes[activity.id] || ''); }} style={{
-                    padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0',
-                    background: 'white', color: '#718096', cursor: 'pointer'
-                  }}>Cancel</button>
-                </div>
-              </div>
-            )}
-          </div>
+      return (<div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '16px', opacity: hasAllEquipment ? 1 : 0.5, borderColor: hasAllEquipment ? '#00ffff' : '#444' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div><h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#fff', fontFamily: 'Orbitron, sans-serif' }}>{activity.name}</h3><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: 'transparent', color: difficultyColors[activity.difficulty], border: `1px solid ${difficultyColors[activity.difficulty]}`, fontFamily: 'Orbitron, sans-serif' }}>{activity.difficulty}</span><span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: 'rgba(255,255,255,0.1)', color: '#aaa' }}>{activity.duration}</span><span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: 'transparent', color: '#00ffff', border: '1px solid #00ffff', fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold' }}>+{activity.points} XP</span></div></div>
+          <button onClick={() => onToggleFavorite(activity.id)} style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', padding: '4px', filter: isFavorite ? 'drop-shadow(0 0 10px #ff0080)' : 'none' }}>{isFavorite ? '💖' : '🖤'}</button>
         </div>
-      );
+        <p style={{ color: '#bbb', marginBottom: '12px', lineHeight: '1.5' }}>{activity.description}</p>
+        {activity.equipment.length > 0 && (<div style={{ marginBottom: '12px' }}><span style={{ fontSize: '14px', color: '#888' }}>Equipment: </span>{activity.equipment.map(eq => { const equipment = EQUIPMENT_OPTIONS.find(e => e.id === eq); const isMissing = missingEquipment.includes(eq); return <span key={eq} style={{ display: 'inline-block', padding: '4px 8px', margin: '2px 4px', borderRadius: '8px', fontSize: '12px', backgroundColor: isMissing ? 'rgba(255,0,0,0.2)' : 'rgba(0,255,255,0.1)', color: isMissing ? '#ff4444' : '#00ffff', border: `1px solid ${isMissing ? '#ff4444' : '#00ffff'}` }}>{equipment?.emoji} {equipment?.name}</span>; })}</div>)}
+        <div style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>Ages {activity.minAge}-{activity.maxAge}</div>
+        {hasAllEquipment && participants.length > 0 && (<div style={{ marginBottom: '16px' }}><div style={{ fontSize: '14px', color: '#00ffff', marginBottom: '8px', fontFamily: 'Orbitron, sans-serif' }}>TAP TO COMPLETE:</div><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{participants.map(p => { const avatar = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; return (<button key={p.id} onClick={() => onComplete(activity, p.id)} style={{ padding: '10px 16px', borderRadius: '25px', border: `2px solid ${color.primary}`, background: 'transparent', color: color.primary, fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: color.glow }}><span style={{ filter: `drop-shadow(0 0 5px ${color.primary})` }}>{avatar?.emoji}</span><span>{p.name}</span></button>); })}{participants.length > 1 && (<button onClick={() => onComplete(activity, 'ALL')} style={{ padding: '10px 20px', borderRadius: '25px', border: '2px solid #ffff00', background: 'transparent', color: '#ffff00', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 0 20px rgba(255,255,0,0.3)', fontFamily: 'Orbitron, sans-serif' }}><span>👨‍👩‍👧‍👦</span><span>ALL</span></button>)}</div></div>)}
+        {!hasAllEquipment && (<div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,0,0,0.1)', color: '#ff4444', fontSize: '14px', marginBottom: '16px', border: '1px solid #ff4444' }}>⚠️ Missing equipment - enable in Settings</div>)}
+        <div style={{ borderTop: '1px solid #333', paddingTop: '12px' }}>{!showNoteInput ? (<button onClick={() => setShowNoteInput(true)} style={{ background: 'none', border: '1px dashed #444', borderRadius: '8px', padding: '8px 16px', color: '#666', fontSize: '14px', cursor: 'pointer', width: '100%', textAlign: 'left' }}>{activityNotes[activity.id] ? `📝 ${activityNotes[activity.id]}` : '💡 Add suggestion or note...'}</button>) : (<div><textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add your suggestions..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /><div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}><button onClick={handleSaveNote} style={{ padding: '8px 16px', borderRadius: '8px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer' }}>Save</button><button onClick={() => { setShowNoteInput(false); setNoteText(activityNotes[activity.id] || ''); }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', cursor: 'pointer' }}>Cancel</button></div></div>)}</div>
+      </div>);
     };
 
-    // Participant card for dashboard
     const ParticipantCard = ({ participant, onClick }) => {
       const avatar = AVATARS.find(a => a.id === participant.avatar);
       const color = COLOR_OPTIONS.find(c => c.id === participant.color) || COLOR_OPTIONS[0];
@@ -551,286 +264,43 @@
       const nextLevel = LEVELS.find(l => l.minXP > participant.xp);
       const progressToNext = nextLevel ? ((participant.xp - currentLevel.minXP) / (nextLevel.minXP - currentLevel.minXP)) * 100 : 100;
 
-      return (
-        <div onClick={onClick} style={{ background: color.gradient, borderRadius: '20px', padding: '20px', color: 'white', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', marginRight: '16px' }}>{avatar?.emoji}</div>
-            <div>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px' }}>{participant.name}</h3>
-              <div style={{ fontSize: '14px', opacity: 0.9 }}>{currentLevel?.emoji} Level {currentLevel?.level} - {currentLevel?.name}</div>
-            </div>
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '4px' }}><span>{participant.xp} XP</span>{nextLevel && <span>{nextLevel.minXP} XP</span>}</div>
-            <div style={{ height: '8px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${progressToNext}%`, backgroundColor: '#ffe66d', borderRadius: '4px', transition: 'width 0.5s ease-out' }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', opacity: 0.9 }}>
-            <span>🏆 {participant.completedActivities?.length || 0} completed</span>
-            <span>🏅 {participant.earnedBadges?.length || 0} badges</span>
-          </div>
-        </div>
-      );
+      return (<div onClick={onClick} style={{ background: 'linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,20,50,0.95) 100%)', border: `2px solid ${color.primary}`, borderRadius: '20px', padding: '20px', color: 'white', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: `0 0 30px ${color.primary}40` }} onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = `0 0 50px ${color.primary}60`; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 0 30px ${color.primary}40`; }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}><div style={{ width: '65px', height: '65px', borderRadius: '50%', backgroundColor: `${color.primary}20`, border: `2px solid ${color.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', marginRight: '16px', boxShadow: `0 0 20px ${color.primary}40`, animation: 'float 3s ease-in-out infinite' }}>{avatar?.emoji}</div><div><h3 style={{ margin: '0 0 4px 0', fontSize: '22px', fontFamily: 'Orbitron, sans-serif', color: color.primary, textShadow: `0 0 10px ${color.primary}` }}>{participant.name}</h3><div style={{ fontSize: '14px', color: '#aaa' }}>{currentLevel?.emoji} {currentLevel?.name}</div></div></div>
+        <div style={{ marginBottom: '8px' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px', fontFamily: 'Orbitron, sans-serif' }}><span style={{ color: color.primary }}>{participant.xp} XP</span>{nextLevel && <span style={{ color: '#666' }}>{nextLevel.minXP} XP</span>}</div><div style={{ height: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${color.primary}40` }}><div style={{ height: '100%', width: `${progressToNext}%`, background: color.gradient, borderRadius: '4px', transition: 'width 0.5s ease-out', boxShadow: `0 0 10px ${color.primary}` }} /></div></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#888' }}><span>🏆 {participant.completedActivities?.length || 0} completed</span><span>🏅 {(participant.earnedBadges?.length || 0) + (participant.avatarBadges?.length || 0)} badges</span></div>
+      </div>);
     };
 
-    // Participant Editor Component
     const ParticipantEditor = ({ participant, onSave, onCancel, onDelete, isNew }) => {
       const [name, setName] = useState(participant?.name || '');
       const [age, setAge] = useState(participant?.age?.toString() || '');
       const [avatar, setAvatar] = useState(participant?.avatar || 'trex');
-      const [color, setColor] = useState(participant?.color || 'purple');
+      const [color, setColor] = useState(participant?.color || 'cyan');
 
-      return (
-        <div style={{ background: '#f7fafc', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 16px 0', color: '#2d3748' }}>{isNew ? 'Add New Participant' : 'Edit Participant'}</h3>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', color: '#4a5568', fontWeight: 'bold' }}>Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter name"
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '16px', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', color: '#4a5568', fontWeight: 'bold' }}>Age</label>
-            <input
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="Age"
-              min="1"
-              max="18"
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '16px', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', color: '#4a5568', fontWeight: 'bold' }}>Avatar</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {AVATARS.map(a => (
-                <button
-                  key={a.id}
-                  onClick={() => setAvatar(a.id)}
-                  style={{
-                    width: '50px', height: '50px', borderRadius: '12px',
-                    border: avatar === a.id ? '3px solid #667eea' : '2px solid #e2e8f0',
-                    background: avatar === a.id ? '#eef2ff' : 'white',
-                    fontSize: '28px', cursor: 'pointer'
-                  }}
-                >
-                  {a.emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', color: '#4a5568', fontWeight: 'bold' }}>Color Theme</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {COLOR_OPTIONS.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => setColor(c.id)}
-                  style={{
-                    width: '50px', height: '50px', borderRadius: '12px',
-                    border: color === c.id ? '3px solid #2d3748' : '2px solid transparent',
-                    background: c.gradient,
-                    cursor: 'pointer',
-                    boxShadow: color === c.id ? '0 0 0 2px white, 0 0 0 4px #2d3748' : 'none'
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => onSave({ ...participant, name, age: parseInt(age), avatar, color })}
-              disabled={!name || !age}
-              style={{
-                padding: '12px 24px', borderRadius: '8px', border: 'none',
-                background: name && age ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#e2e8f0',
-                color: name && age ? 'white' : '#a0aec0',
-                fontWeight: 'bold', fontSize: '16px',
-                cursor: name && age ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {isNew ? 'Add Participant' : 'Save Changes'}
-            </button>
-            <button
-              onClick={onCancel}
-              style={{
-                padding: '12px 24px', borderRadius: '8px',
-                border: '1px solid #e2e8f0', background: 'white',
-                color: '#718096', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </button>
-            {!isNew && (
-              <button
-                onClick={() => onDelete(participant.id)}
-                style={{
-                  padding: '12px 24px', borderRadius: '8px', border: 'none',
-                  background: '#fed7d7', color: '#c53030',
-                  fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', marginLeft: 'auto'
-                }}
-              >
-                Delete
-              </button>
-            )}
-          </div>
-        </div>
-      );
+      return (<div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+        <h3 style={{ margin: '0 0 16px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{isNew ? 'NEW PILOT' : 'EDIT PILOT'}</h3>
+        <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>NAME</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter name" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /></div>
+        <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AGE</label><input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" min="1" max="18" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /></div>
+        <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AVATAR</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{AVATARS.map(a => (<button key={a.id} onClick={() => setAvatar(a.id)} style={{ width: '52px', height: '52px', borderRadius: '12px', border: avatar === a.id ? '3px solid #00ffff' : '2px solid #333', background: avatar === a.id ? 'rgba(0,255,255,0.1)' : 'rgba(0,0,0,0.3)', fontSize: '28px', cursor: 'pointer', boxShadow: avatar === a.id ? '0 0 15px #00ffff' : 'none' }}>{a.emoji}</button>))}</div></div>
+        <div style={{ marginBottom: '20px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>COLOR THEME</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{COLOR_OPTIONS.map(c => (<button key={c.id} onClick={() => setColor(c.id)} style={{ width: '52px', height: '52px', borderRadius: '12px', border: color === c.id ? '3px solid #fff' : '2px solid transparent', background: c.gradient, cursor: 'pointer', boxShadow: color === c.id ? `0 0 20px ${c.primary}` : c.glow }} />))}</div></div>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}><button onClick={() => onSave({ ...participant, name, age: parseInt(age), avatar, color })} disabled={!name || !age} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #00ff00', background: 'transparent', color: name && age ? '#00ff00' : '#444', fontWeight: 'bold', fontSize: '14px', cursor: name && age ? 'pointer' : 'not-allowed', fontFamily: 'Orbitron, sans-serif', boxShadow: name && age ? '0 0 15px rgba(0,255,0,0.3)' : 'none' }}>{isNew ? 'ADD PILOT' : 'SAVE'}</button><button onClick={onCancel} style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>CANCEL</button>{!isNew && (<button onClick={() => onDelete(participant.id)} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #ff0000', background: 'transparent', color: '#ff0000', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', marginLeft: 'auto', fontFamily: 'Orbitron, sans-serif' }}>DELETE</button>)}</div>
+      </div>);
     };
 
-    // Settings component
     const Settings = ({ participants, equipment, activityNotes, onSaveParticipant, onDeleteParticipant, onToggleEquipment }) => {
       const [editingId, setEditingId] = useState(null);
       const [showAddNew, setShowAddNew] = useState(false);
-
-      const handleSave = (participantData) => {
-        onSaveParticipant(participantData);
-        setEditingId(null);
-        setShowAddNew(false);
-      };
-
-      // Get activities that have notes
+      const handleSave = (participantData) => { onSaveParticipant(participantData); setEditingId(null); setShowAddNew(false); };
       const activitiesWithNotes = ACTIVITY_LIBRARY.filter(a => activityNotes[a.id]);
 
-      return (
-        <div>
-          <h1 style={{ fontSize: '28px', margin: '0 0 24px 0', color: '#2d3748' }}>⚙️ Settings</h1>
-
-          {/* Participants Section */}
-          <div style={{ background: 'white', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
-            <h2 style={{ margin: '0 0 16px 0', color: '#2d3748' }}>👥 Participants ({participants.length}/4)</h2>
-
-            {participants.map(p => {
-              if (editingId === p.id) {
-                return (
-                  <ParticipantEditor
-                    key={p.id}
-                    participant={p}
-                    onSave={handleSave}
-                    onCancel={() => setEditingId(null)}
-                    onDelete={(id) => { onDeleteParticipant(id); setEditingId(null); }}
-                    isNew={false}
-                  />
-                );
-              }
-
-              const avatar = AVATARS.find(a => a.id === p.avatar);
-              const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0];
-
-              return (
-                <div
-                  key={p.id}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '16px', background: color.gradient, borderRadius: '12px',
-                    marginBottom: '8px', color: 'white'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '36px' }}>{avatar?.emoji}</span>
-                    <div>
-                      <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{p.name}</div>
-                      <div style={{ fontSize: '14px', opacity: 0.9 }}>Age {p.age} • {p.xp} XP</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setEditingId(p.id)}
-                    style={{
-                      padding: '8px 20px', borderRadius: '8px', border: 'none',
-                      background: 'rgba(255,255,255,0.2)', color: 'white',
-                      fontWeight: 'bold', cursor: 'pointer', backdropFilter: 'blur(4px)'
-                    }}
-                  >
-                    ✏️ Edit
-                  </button>
-                </div>
-              );
-            })}
-
-            {showAddNew ? (
-              <ParticipantEditor
-                participant={{ id: Date.now().toString(), xp: 0, completedActivities: [], earnedBadges: [] }}
-                onSave={handleSave}
-                onCancel={() => setShowAddNew(false)}
-                onDelete={() => {}}
-                isNew={true}
-              />
-            ) : (
-              participants.length < 4 && (
-                <button
-                  onClick={() => setShowAddNew(true)}
-                  style={{
-                    width: '100%', padding: '16px', borderRadius: '12px',
-                    border: '2px dashed #cbd5e0', background: 'white',
-                    color: '#667eea', fontWeight: 'bold', fontSize: '16px',
-                    cursor: 'pointer', marginTop: '8px'
-                  }}
-                >
-                  + Add Participant
-                </button>
-              )
-            )}
-          </div>
-
-          {/* Equipment Section */}
-          <div style={{ background: 'white', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
-            <h2 style={{ margin: '0 0 16px 0', color: '#2d3748' }}>🏋️ Available Equipment</h2>
-            <p style={{ color: '#718096', marginBottom: '16px', fontSize: '14px' }}>Check the equipment you have. Activities will filter based on this.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>
-              {EQUIPMENT_OPTIONS.map(eq => (
-                <label key={eq.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: equipment.includes(eq.id) ? '#c6f6d5' : '#f7fafc', borderRadius: '12px', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={equipment.includes(eq.id)} onChange={() => onToggleEquipment(eq.id)} style={{ width: '20px', height: '20px' }} />
-                  <span style={{ fontSize: '20px' }}>{eq.emoji}</span>
-                  <span style={{ color: '#2d3748' }}>{eq.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Activity Notes Section */}
-          <div style={{ background: 'white', borderRadius: '16px', padding: '20px' }}>
-            <h2 style={{ margin: '0 0 16px 0', color: '#2d3748' }}>📝 Notes on Activities</h2>
-            <p style={{ color: '#718096', marginBottom: '16px', fontSize: '14px' }}>
-              Suggestions and notes you've added to activities. Use these to improve the game!
-            </p>
-            {activitiesWithNotes.length === 0 ? (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#718096', backgroundColor: '#f7fafc', borderRadius: '12px' }}>
-                No notes yet. Add suggestions on individual activities!
-              </div>
-            ) : (
-              <div>
-                {activitiesWithNotes.map(activity => (
-                  <div key={activity.id} style={{ padding: '16px', backgroundColor: '#f7fafc', borderRadius: '12px', marginBottom: '8px' }}>
-                    <div style={{ fontWeight: 'bold', color: '#2d3748', marginBottom: '4px' }}>
-                      {activity.name}
-                    </div>
-                    <div style={{ color: '#4a5568', fontSize: '14px', whiteSpace: 'pre-wrap' }}>
-                      💡 {activityNotes[activity.id]}
-                    </div>
-                  </div>
-                ))}
-                <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#eef2ff', borderRadius: '12px', fontSize: '14px', color: '#5c6bc0' }}>
-                  <strong>💻 Developer Note:</strong> Copy these notes to update the ACTIVITY_LIBRARY in the code!
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      );
+      return (<div>
+        <h1 style={{ fontSize: '28px', margin: '0 0 24px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>⚙️ COMMAND CENTER</h1>
+        <div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '24px' }}><h2 style={{ margin: '0 0 16px 0', color: '#ff00ff', fontFamily: 'Orbitron, sans-serif' }}>👥 PILOTS ({participants.length}/4)</h2>{participants.map(p => { if (editingId === p.id) { return <ParticipantEditor key={p.id} participant={p} onSave={handleSave} onCancel={() => setEditingId(null)} onDelete={(id) => { onDeleteParticipant(id); setEditingId(null); }} isNew={false} />; } const avatar = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; return (<div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', marginBottom: '8px', border: `2px solid ${color.primary}`, boxShadow: `0 0 15px ${color.primary}30` }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><span style={{ fontSize: '36px', filter: `drop-shadow(0 0 10px ${color.primary})` }}>{avatar?.emoji}</span><div><div style={{ fontWeight: 'bold', fontSize: '18px', color: color.primary, fontFamily: 'Orbitron, sans-serif' }}>{p.name}</div><div style={{ fontSize: '14px', color: '#888' }}>Age {p.age} • {p.xp} XP</div></div></div><button onClick={() => setEditingId(p.id)} style={{ padding: '8px 20px', borderRadius: '8px', border: `1px solid ${color.primary}`, background: 'transparent', color: color.primary, fontWeight: 'bold', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>✏️ EDIT</button></div>); })}{showAddNew ? (<ParticipantEditor participant={{ id: Date.now().toString(), xp: 0, completedActivities: [], earnedBadges: [], avatarBadges: [] }} onSave={handleSave} onCancel={() => setShowAddNew(false)} onDelete={() => {}} isNew={true} />) : (participants.length < 4 && (<button onClick={() => setShowAddNew(true)} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '2px dashed #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', marginTop: '8px', fontFamily: 'Orbitron, sans-serif' }}>+ ADD PILOT</button>))}</div>
+        <div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '24px' }}><h2 style={{ margin: '0 0 16px 0', color: '#ffff00', fontFamily: 'Orbitron, sans-serif' }}>🏋️ EQUIPMENT BAY</h2><p style={{ color: '#888', marginBottom: '16px', fontSize: '14px' }}>Select available equipment to unlock missions.</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>{EQUIPMENT_OPTIONS.map(eq => (<label key={eq.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: equipment.includes(eq.id) ? 'rgba(0,255,0,0.1)' : 'rgba(0,0,0,0.3)', borderRadius: '12px', cursor: 'pointer', border: equipment.includes(eq.id) ? '1px solid #00ff00' : '1px solid #333' }}><input type="checkbox" checked={equipment.includes(eq.id)} onChange={() => onToggleEquipment(eq.id)} style={{ width: '20px', height: '20px', accentColor: '#00ff00' }} /><span style={{ fontSize: '20px' }}>{eq.emoji}</span><span style={{ color: equipment.includes(eq.id) ? '#00ff00' : '#888' }}>{eq.name}</span></label>))}</div></div>
+        <div className="neon-card" style={{ borderRadius: '16px', padding: '20px' }}><h2 style={{ margin: '0 0 16px 0', color: '#ff8000', fontFamily: 'Orbitron, sans-serif' }}>📝 MISSION NOTES</h2><p style={{ color: '#888', marginBottom: '16px', fontSize: '14px' }}>Suggestions and notes for activities.</p>{activitiesWithNotes.length === 0 ? (<div style={{ padding: '20px', textAlign: 'center', color: '#666', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '12px' }}>No notes yet. Add suggestions on individual activities!</div>) : (<div>{activitiesWithNotes.map(activity => (<div key={activity.id} style={{ padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '12px', marginBottom: '8px', border: '1px solid #333' }}><div style={{ fontWeight: 'bold', color: '#00ffff', marginBottom: '4px', fontFamily: 'Orbitron, sans-serif' }}>{activity.name}</div><div style={{ color: '#aaa', fontSize: '14px', whiteSpace: 'pre-wrap' }}>💡 {activityNotes[activity.id]}</div></div>))}</div>)}</div>
+      </div>);
     };
 
-    // Main App
     function App() {
       const [view, setView] = useState('dashboard');
       const [selectedParticipant, setSelectedParticipant] = useState(null);
@@ -842,26 +312,11 @@
       const [activityFilter, setActivityFilter] = useState('all');
       const [searchQuery, setSearchQuery] = useState('');
 
-      const [participants, setParticipants] = useState(() => {
-        const saved = localStorage.getItem('gymAdventure_participants');
-        return saved ? JSON.parse(saved) : [];
-      });
-      const [equipment, setEquipment] = useState(() => {
-        const saved = localStorage.getItem('gymAdventure_equipment');
-        return saved ? JSON.parse(saved) : [];
-      });
-      const [favorites, setFavorites] = useState(() => {
-        const saved = localStorage.getItem('gymAdventure_favorites');
-        return saved ? JSON.parse(saved) : [];
-      });
-      const [completionHistory, setCompletionHistory] = useState(() => {
-        const saved = localStorage.getItem('gymAdventure_history');
-        return saved ? JSON.parse(saved) : [];
-      });
-      const [activityNotes, setActivityNotes] = useState(() => {
-        const saved = localStorage.getItem('gymAdventure_notes');
-        return saved ? JSON.parse(saved) : {};
-      });
+      const [participants, setParticipants] = useState(() => { const saved = localStorage.getItem('gymAdventure_participants'); return saved ? JSON.parse(saved) : []; });
+      const [equipment, setEquipment] = useState(() => { const saved = localStorage.getItem('gymAdventure_equipment'); return saved ? JSON.parse(saved) : []; });
+      const [favorites, setFavorites] = useState(() => { const saved = localStorage.getItem('gymAdventure_favorites'); return saved ? JSON.parse(saved) : []; });
+      const [completionHistory, setCompletionHistory] = useState(() => { const saved = localStorage.getItem('gymAdventure_history'); return saved ? JSON.parse(saved) : []; });
+      const [activityNotes, setActivityNotes] = useState(() => { const saved = localStorage.getItem('gymAdventure_notes'); return saved ? JSON.parse(saved) : {}; });
 
       useEffect(() => { localStorage.setItem('gymAdventure_participants', JSON.stringify(participants)); }, [participants]);
       useEffect(() => { localStorage.setItem('gymAdventure_equipment', JSON.stringify(equipment)); }, [equipment]);
@@ -869,327 +324,96 @@
       useEffect(() => { localStorage.setItem('gymAdventure_history', JSON.stringify(completionHistory)); }, [completionHistory]);
       useEffect(() => { localStorage.setItem('gymAdventure_notes', JSON.stringify(activityNotes)); }, [activityNotes]);
 
-      const getParticipantStats = (participant) => {
-        const completed = participant.completedActivities || [];
-        return {
-          totalCompleted: completed.length,
-          totalPoints: participant.xp || 0,
-          balanceCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'balance').length,
-          jumpCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'jump').length,
-          teamCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.tags?.includes('team')).length,
-          favoritesCount: favorites.length,
-          uniqueActivities: new Set(completed.map(c => c.activityId)).size,
-          uniqueDays: new Set(completed.map(c => new Date(c.date).toDateString())).size,
-        };
-      };
-
-      const checkBadges = (participant) => {
-        const stats = getParticipantStats(participant);
-        const earnedBadges = participant.earnedBadges || [];
-        for (const badge of BADGES) {
-          if (!earnedBadges.includes(badge.id) && badge.condition(stats)) return badge;
-        }
-        return null;
-      };
-
+      const getParticipantStats = (participant) => { const completed = participant.completedActivities || []; return { totalCompleted: completed.length, totalPoints: participant.xp || 0, balanceCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'balance').length, jumpCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'jump').length, teamCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.tags?.includes('team')).length, strengthCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'strength').length, danceCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'dance').length, yogaCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'yoga').length, obstacleCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'obstacle').length, favoritesCount: favorites.length, uniqueActivities: new Set(completed.map(c => c.activityId)).size, uniqueDays: new Set(completed.map(c => new Date(c.date).toDateString())).size }; };
+      const checkBadges = (participant) => { const stats = getParticipantStats(participant); const earnedBadges = participant.earnedBadges || []; for (const badge of BADGES) { if (!earnedBadges.includes(badge.id) && badge.condition(stats)) return badge; } return null; };
+      const checkAvatarBadges = (participant) => { const avatarBadges = participant.avatarBadges || []; const avatarId = participant.avatar; const completedCount = (participant.completedActivities || []).length; for (const badge of AVATAR_BADGES) { if (badge.avatarId === avatarId && !avatarBadges.includes(badge.id) && completedCount >= badge.threshold) { return badge; } } return null; };
       const toggleFavorite = (activityId) => setFavorites(prev => prev.includes(activityId) ? prev.filter(id => id !== activityId) : [...prev, activityId]);
 
       const completeActivity = (activity, participantIdOrAll) => {
-        const participantIds = participantIdOrAll === 'ALL'
-          ? participants.map(p => p.id)
-          : [participantIdOrAll];
-
-        let totalPoints = 0;
-        let completedNames = [];
-
+        const participantIds = participantIdOrAll === 'ALL' ? participants.map(p => p.id) : [participantIdOrAll];
+        let totalPoints = 0; let completedNames = [];
         participantIds.forEach(participantId => {
-          const participant = participants.find(p => p.id === participantId);
-          if (!participant) return;
-
+          const participant = participants.find(p => p.id === participantId); if (!participant) return;
           const previousLevel = LEVELS.filter(l => participant.xp >= l.minXP).pop();
-          const updatedParticipant = {
-            ...participant,
-            xp: (participant.xp || 0) + activity.points,
-            completedActivities: [...(participant.completedActivities || []), { activityId: activity.id, date: new Date().toISOString(), points: activity.points }],
-          };
-
+          const updatedParticipant = { ...participant, xp: (participant.xp || 0) + activity.points, completedActivities: [...(participant.completedActivities || []), { activityId: activity.id, date: new Date().toISOString(), points: activity.points }] };
           const newLevelData = LEVELS.filter(l => updatedParticipant.xp >= l.minXP).pop();
-          if (newLevelData.level > previousLevel.level) {
-            setTimeout(() => setNewLevel(newLevelData), participantIds.length > 1 ? 2000 : 1500);
-          }
-
-          const badge = checkBadges(updatedParticipant);
-          if (badge) {
-            updatedParticipant.earnedBadges = [...(updatedParticipant.earnedBadges || []), badge.id];
-            setTimeout(() => setNewBadge(badge), newLevelData.level > previousLevel.level ? 4000 : 2500);
-          }
-
+          if (newLevelData.level > previousLevel.level) { setTimeout(() => setNewLevel(newLevelData), participantIds.length > 1 ? 2000 : 1500); }
+          const badge = checkBadges(updatedParticipant); if (badge) { updatedParticipant.earnedBadges = [...(updatedParticipant.earnedBadges || []), badge.id]; setTimeout(() => setNewBadge(badge), newLevelData.level > previousLevel.level ? 4000 : 2500); }
+          const avatarBadge = checkAvatarBadges(updatedParticipant); if (avatarBadge) { updatedParticipant.avatarBadges = [...(updatedParticipant.avatarBadges || []), avatarBadge.id]; setTimeout(() => setNewBadge(avatarBadge), badge ? 5500 : (newLevelData.level > previousLevel.level ? 4000 : 2500)); }
           setParticipants(prev => prev.map(p => p.id === participantId ? updatedParticipant : p));
           setCompletionHistory(prev => [...prev, { participantId, participantName: participant.name, activityId: activity.id, activityName: activity.name, points: activity.points, date: new Date().toISOString() }]);
-
-          totalPoints += activity.points;
-          completedNames.push(participant.name);
+          totalPoints += activity.points; completedNames.push(participant.name);
         });
-
-        // Show points popup
-        setPointsPopup({
-          points: totalPoints,
-          participantName: participantIdOrAll === 'ALL' ? 'Everyone' : completedNames[0]
-        });
-
-        // Show confetti
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000);
+        setPointsPopup({ points: totalPoints, participantName: participantIdOrAll === 'ALL' ? 'Everyone' : completedNames[0] });
+        setShowConfetti(true); setTimeout(() => setShowConfetti(false), 3000);
       };
 
-      const saveParticipant = (participantData) => {
-        const existing = participants.find(p => p.id === participantData.id);
-        if (existing) {
-          setParticipants(prev => prev.map(p => p.id === participantData.id ? { ...p, ...participantData } : p));
-        } else {
-          if (participants.length >= 4) return;
-          setParticipants(prev => [...prev, participantData]);
-        }
-      };
-
+      const saveParticipant = (participantData) => { const existing = participants.find(p => p.id === participantData.id); if (existing) { setParticipants(prev => prev.map(p => p.id === participantData.id ? { ...p, ...participantData } : p)); } else { if (participants.length >= 4) return; setParticipants(prev => [...prev, participantData]); } };
       const deleteParticipant = (id) => setParticipants(prev => prev.filter(p => p.id !== id));
       const toggleEquipment = (equipmentId) => setEquipment(prev => prev.includes(equipmentId) ? prev.filter(id => id !== equipmentId) : [...prev, equipmentId]);
+      const updateActivityNote = (activityId, note) => { setActivityNotes(prev => { if (!note || note.trim() === '') { const { [activityId]: removed, ...rest } = prev; return rest; } return { ...prev, [activityId]: note }; }); };
+      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => a.equipment.every(eq => equipment.includes(eq)) && (participants.length === 0 || participants.some(p => p.age >= a.minAge && p.age <= a.maxAge)));
+      const getFilteredActivities = () => { let filtered = ACTIVITY_LIBRARY; if (activityFilter !== 'all') filtered = filtered.filter(a => a.category === activityFilter); if (searchQuery) { const query = searchQuery.toLowerCase(); filtered = filtered.filter(a => a.name.toLowerCase().includes(query) || a.description.toLowerCase().includes(query)); } filtered.sort((a, b) => { const aHas = a.equipment.every(eq => equipment.includes(eq)); const bHas = b.equipment.every(eq => equipment.includes(eq)); return aHas === bHas ? 0 : aHas ? -1 : 1; }); return filtered; };
 
-      const updateActivityNote = (activityId, note) => {
-        setActivityNotes(prev => {
-          if (!note || note.trim() === '') {
-            const { [activityId]: removed, ...rest } = prev;
-            return rest;
-          }
-          return { ...prev, [activityId]: note };
-        });
-      };
+      const renderDashboard = () => (<div>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}><h1 style={{ fontSize: '38px', margin: '0 0 8px 0', fontFamily: 'Orbitron, sans-serif', background: 'linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ffff)', backgroundSize: '300% 100%', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s linear infinite' }}>🦖 HOME GYM ADVENTURE 🦋</h1><p style={{ color: '#888', margin: 0, fontFamily: 'Orbitron, sans-serif', fontSize: '14px', letterSpacing: '3px' }}>SPACE • DINOS • FITNESS</p></div>
+        {participants.length === 0 ? (<div className="neon-card" style={{ textAlign: 'center', padding: '50px', borderRadius: '20px', marginBottom: '24px' }}><div style={{ fontSize: '80px', marginBottom: '20px', animation: 'float 2s ease-in-out infinite' }}>🦕</div><h2 style={{ color: '#00ffff', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif' }}>NO PILOTS DETECTED!</h2><p style={{ color: '#888', marginBottom: '28px' }}>Register pilots in Command Center to begin.</p><button onClick={() => setView('settings')} className="arcade-btn" style={{ padding: '18px 40px', fontSize: '16px', border: '2px solid #00ffff', borderRadius: '30px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 30px rgba(0,255,255,0.3)' }}>COMMAND CENTER ⚙️</button></div>) : (<><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '32px' }}>{participants.map(p => <ParticipantCard key={p.id} participant={p} onClick={() => { setSelectedParticipant(p); setView('participant'); }} />)}</div><button onClick={() => setView('activities')} className="arcade-btn" style={{ width: '100%', padding: '22px', fontSize: '20px', border: '3px solid #ff00ff', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(255,0,255,0.1) 0%, rgba(255,0,128,0.1) 100%)', color: '#ff00ff', cursor: 'pointer', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 40px rgba(255,0,255,0.3)', letterSpacing: '3px' }}>🎯 LAUNCH MISSION!</button><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><button onClick={() => { const eligible = getEligibleActivities(); if (eligible.length > 0) { setShowWheel(true); } else { alert('No missions available!'); } }} className="arcade-btn" style={{ padding: '18px', fontSize: '15px', border: '2px solid #00ffff', borderRadius: '12px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 20px rgba(0,255,255,0.2)' }}>🎲 RANDOM</button><button onClick={() => setView('favorites')} className="arcade-btn" style={{ padding: '18px', fontSize: '15px', border: '2px solid #ff0080', borderRadius: '12px', background: 'transparent', color: '#ff0080', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 20px rgba(255,0,128,0.2)' }}>💖 FAVORITES ({favorites.length})</button></div></>)}
+        {completionHistory.length > 0 && (<div style={{ marginTop: '32px' }}><h2 style={{ color: '#00ffff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>📜 MISSION LOG</h2><div className="neon-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>{completionHistory.slice(-5).reverse().map((entry, idx) => (<div key={idx} style={{ padding: '16px', borderBottom: idx < 4 ? '1px solid #222' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ color: '#aaa' }}><strong style={{ color: '#fff' }}>{entry.participantName}</strong> completed <span style={{ color: '#00ffff' }}>{entry.activityName}</span></div><span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(0,255,0,0.1)', color: '#00ff00', fontSize: '14px', fontWeight: 'bold', border: '1px solid #00ff00', fontFamily: 'Orbitron, sans-serif' }}>+{entry.points}</span></div>))}</div></div>)}
+      </div>);
 
-      const getEligibleActivities = () => {
-        return ACTIVITY_LIBRARY.filter(a => {
-          const hasEquipment = a.equipment.every(eq => equipment.includes(eq));
-          const hasParticipantInAgeRange = participants.some(p => p.age >= a.minAge && p.age <= a.maxAge);
-          return hasEquipment && (participants.length === 0 || hasParticipantInAgeRange);
-        });
-      };
+      const renderActivities = () => (<div>
+        <h1 style={{ fontSize: '28px', margin: '0 0 16px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>🎯 SELECT MISSION</h1>
+        <input type="text" placeholder="Search missions..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '14px 20px', fontSize: '16px', border: '2px solid #00ffff', borderRadius: '12px', marginBottom: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} />
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>{['all', 'jump', 'balance', 'strength', 'dance', 'obstacle', 'target', 'yoga', 'game', 'cooldown'].map(cat => (<button key={cat} onClick={() => setActivityFilter(cat)} style={{ padding: '8px 16px', borderRadius: '20px', border: activityFilter === cat ? '2px solid #00ffff' : '1px solid #444', background: activityFilter === cat ? 'rgba(0,255,255,0.1)' : 'transparent', color: activityFilter === cat ? '#00ffff' : '#888', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', textTransform: 'uppercase', boxShadow: activityFilter === cat ? '0 0 15px rgba(0,255,255,0.3)' : 'none' }}>{cat === 'all' ? '🌟 ALL' : cat}</button>))}</div>
+        {getFilteredActivities().map(activity => (<ActivityCard key={activity.id} activity={activity} isFavorite={favorites.includes(activity.id)} onToggleFavorite={toggleFavorite} onComplete={completeActivity} availableEquipment={equipment} participants={participants} activityNotes={activityNotes} onUpdateNote={updateActivityNote} />))}
+      </div>);
 
-      const getFilteredActivities = () => {
-        let filtered = ACTIVITY_LIBRARY;
-        if (activityFilter !== 'all') filtered = filtered.filter(a => a.category === activityFilter);
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          filtered = filtered.filter(a => a.name.toLowerCase().includes(query) || a.description.toLowerCase().includes(query));
-        }
-        filtered.sort((a, b) => {
-          const aHas = a.equipment.every(eq => equipment.includes(eq));
-          const bHas = b.equipment.every(eq => equipment.includes(eq));
-          return aHas === bHas ? 0 : aHas ? -1 : 1;
-        });
-        return filtered;
-      };
+      const renderFavorites = () => { const favoriteActivities = ACTIVITY_LIBRARY.filter(a => favorites.includes(a.id)); return (<div><h1 style={{ fontSize: '28px', margin: '0 0 24px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>💖 FAVORITE MISSIONS</h1>{favoriteActivities.length === 0 ? (<div className="neon-card" style={{ textAlign: 'center', padding: '50px', borderRadius: '16px' }}><div style={{ fontSize: '64px', marginBottom: '16px' }}>💔</div><h2 style={{ color: '#ff0080', marginBottom: '8px', fontFamily: 'Orbitron, sans-serif' }}>NO FAVORITES YET!</h2><p style={{ color: '#888' }}>Tap the heart on missions to save them here.</p></div>) : favoriteActivities.map(activity => (<ActivityCard key={activity.id} activity={activity} isFavorite={true} onToggleFavorite={toggleFavorite} onComplete={completeActivity} availableEquipment={equipment} participants={participants} activityNotes={activityNotes} onUpdateNote={updateActivityNote} />))}</div>); };
 
-      // Dashboard
-      const renderDashboard = () => (
-        <div>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '32px', margin: '0 0 8px 0', color: '#2d3748' }}>🦖 Home Gym Adventure 🦋</h1>
-            <p style={{ color: '#718096', margin: 0 }}>Get moving and earn rewards!</p>
-          </div>
-          {participants.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '64px', marginBottom: '16px' }}>🦕</div>
-              <h2 style={{ color: '#2d3748', marginBottom: '8px' }}>No Adventurers Yet!</h2>
-              <p style={{ color: '#718096', marginBottom: '24px' }}>Add participants in Settings to get started.</p>
-              <button onClick={() => setView('settings')} style={{ padding: '16px 32px', fontSize: '18px', fontWeight: 'bold', border: 'none', borderRadius: '25px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', cursor: 'pointer' }}>Go to Settings ⚙️</button>
-            </div>
-          ) : (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                {participants.map(p => <ParticipantCard key={p.id} participant={p} onClick={() => { setSelectedParticipant(p); setView('participant'); }} />)}
-              </div>
-              <button onClick={() => setView('activities')} style={{ width: '100%', padding: '20px', fontSize: '20px', fontWeight: 'bold', border: 'none', borderRadius: '16px', background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', cursor: 'pointer', marginBottom: '16px' }}>🎯 Start Adventure!</button>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <button
-                  onClick={() => {
-                    const eligible = getEligibleActivities();
-                    if (eligible.length > 0) {
-                      setShowWheel(true);
-                    } else {
-                      alert('No activities available with current equipment!');
-                    }
-                  }}
-                  style={{ padding: '16px', fontSize: '16px', fontWeight: 'bold', border: 'none', borderRadius: '12px', background: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)', color: 'white', cursor: 'pointer' }}
-                >
-                  🎲 Random Challenge
-                </button>
-                <button onClick={() => setView('favorites')} style={{ padding: '16px', fontSize: '16px', fontWeight: 'bold', border: 'none', borderRadius: '12px', background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)', color: 'white', cursor: 'pointer' }}>❤️ Favorites ({favorites.length})</button>
-              </div>
-            </>
-          )}
-          {completionHistory.length > 0 && (
-            <div style={{ marginTop: '32px' }}>
-              <h2 style={{ color: '#2d3748', marginBottom: '16px' }}>📜 Recent Activity</h2>
-              <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden' }}>
-                {completionHistory.slice(-5).reverse().map((entry, idx) => (
-                  <div key={idx} style={{ padding: '16px', borderBottom: idx < 4 ? '1px solid #e2e8f0' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div><strong>{entry.participantName}</strong> completed <span style={{ color: '#667eea' }}>{entry.activityName}</span></div>
-                    <span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: '#c6f6d5', color: '#276749', fontSize: '14px', fontWeight: 'bold' }}>+{entry.points} XP</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-
-      // Activities
-      const renderActivities = () => (
-        <div>
-          <h1 style={{ fontSize: '28px', margin: '0 0 16px 0', color: '#2d3748' }}>🎯 Choose Your Adventure!</h1>
-          <input type="text" placeholder="Search activities..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '14px 20px', fontSize: '16px', border: '2px solid #e2e8f0', borderRadius: '12px', marginBottom: '16px', boxSizing: 'border-box' }} />
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-            {['all', 'jump', 'balance', 'strength', 'dance', 'obstacle', 'target', 'yoga', 'game', 'cooldown'].map(cat => (
-              <button key={cat} onClick={() => setActivityFilter(cat)} style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', background: activityFilter === cat ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#e2e8f0', color: activityFilter === cat ? 'white' : '#4a5568', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', textTransform: 'capitalize' }}>{cat === 'all' ? '🌟 All' : cat}</button>
-            ))}
-          </div>
-          {getFilteredActivities().map(activity => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              isFavorite={favorites.includes(activity.id)}
-              onToggleFavorite={toggleFavorite}
-              onComplete={completeActivity}
-              availableEquipment={equipment}
-              participants={participants}
-              activityNotes={activityNotes}
-              onUpdateNote={updateActivityNote}
-            />
-          ))}
-        </div>
-      );
-
-      // Favorites
-      const renderFavorites = () => {
-        const favoriteActivities = ACTIVITY_LIBRARY.filter(a => favorites.includes(a.id));
-        return (
-          <div>
-            <h1 style={{ fontSize: '28px', margin: '0 0 24px 0', color: '#2d3748' }}>❤️ Favorite Activities</h1>
-            {favoriteActivities.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px' }}>
-                <div style={{ fontSize: '64px', marginBottom: '16px' }}>💔</div>
-                <h2 style={{ color: '#2d3748', marginBottom: '8px' }}>No Favorites Yet!</h2>
-                <p style={{ color: '#718096' }}>Tap the heart on activities to save them here.</p>
-              </div>
-            ) : favoriteActivities.map(activity => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                isFavorite={true}
-                onToggleFavorite={toggleFavorite}
-                onComplete={completeActivity}
-                availableEquipment={equipment}
-                participants={participants}
-                activityNotes={activityNotes}
-                onUpdateNote={updateActivityNote}
-              />
-            ))}
-          </div>
-        );
-      };
-
-      // Participant detail
       const renderParticipantDetail = () => {
         if (!selectedParticipant) return null;
-        const participant = participants.find(p => p.id === selectedParticipant.id);
-        if (!participant) return null;
+        const participant = participants.find(p => p.id === selectedParticipant.id); if (!participant) return null;
         const avatar = AVATARS.find(a => a.id === participant.avatar);
         const color = COLOR_OPTIONS.find(c => c.id === participant.color) || COLOR_OPTIONS[0];
         const currentLevel = LEVELS.filter(l => participant.xp >= l.minXP).pop();
         const nextLevel = LEVELS.find(l => l.minXP > participant.xp);
         const progressToNext = nextLevel ? ((participant.xp - currentLevel.minXP) / (nextLevel.minXP - currentLevel.minXP)) * 100 : 100;
         const stats = getParticipantStats(participant);
+        const avatarSpecificBadges = AVATAR_BADGES.filter(b => b.avatarId === participant.avatar);
 
-        return (
-          <div>
-            <div style={{ background: color.gradient, borderRadius: '24px', padding: '32px', color: 'white', textAlign: 'center', marginBottom: '24px' }}>
-              <div style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '56px', margin: '0 auto 16px' }}>{avatar?.emoji}</div>
-              <h1 style={{ margin: '0 0 8px 0', fontSize: '28px' }}>{participant.name}</h1>
-              <div style={{ fontSize: '18px', opacity: 0.9, marginBottom: '16px' }}>Age {participant.age} • {avatar?.name}</div>
-              <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '16px', padding: '16px' }}>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>{currentLevel?.emoji} Level {currentLevel?.level} - {currentLevel?.name}</div>
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '4px' }}><span>{participant.xp} XP</span>{nextLevel && <span>{nextLevel.minXP} XP</span>}</div>
-                  <div style={{ height: '12px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '6px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progressToNext}%`, backgroundColor: '#ffe66d', borderRadius: '6px' }} /></div>
-                </div>
-                {nextLevel && <div style={{ fontSize: '14px', opacity: 0.9 }}>{nextLevel.minXP - participant.xp} XP to {nextLevel.name}!</div>}
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ background: 'white', borderRadius: '12px', padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>🏆</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2d3748' }}>{stats.totalCompleted}</div><div style={{ fontSize: '12px', color: '#718096' }}>Completed</div></div>
-              <div style={{ background: 'white', borderRadius: '12px', padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>⭐</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2d3748' }}>{participant.xp}</div><div style={{ fontSize: '12px', color: '#718096' }}>Total XP</div></div>
-              <div style={{ background: 'white', borderRadius: '12px', padding: '16px', textAlign: 'center' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>🏅</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2d3748' }}>{participant.earnedBadges?.length || 0}</div><div style={{ fontSize: '12px', color: '#718096' }}>Badges</div></div>
-            </div>
-            <h2 style={{ color: '#2d3748', marginBottom: '16px' }}>🏅 Badges</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-              {BADGES.map(badge => {
-                const earned = participant.earnedBadges?.includes(badge.id);
-                return <div key={badge.id} title={`${badge.name}: ${badge.description}`} style={{ background: 'white', borderRadius: '12px', padding: '12px', textAlign: 'center', opacity: earned ? 1 : 0.3, filter: earned ? 'none' : 'grayscale(100%)' }}><div style={{ fontSize: '32px' }}>{badge.emoji}</div><div style={{ fontSize: '10px', color: '#4a5568', marginTop: '4px' }}>{badge.name}</div></div>;
-              })}
-            </div>
-            {participant.completedActivities?.length > 0 && (
-              <>
-                <h2 style={{ color: '#2d3748', marginBottom: '16px' }}>📜 Recent Completions</h2>
-                <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden' }}>
-                  {participant.completedActivities.slice(-5).reverse().map((completion, idx) => {
-                    const activity = ACTIVITY_LIBRARY.find(a => a.id === completion.activityId);
-                    return <div key={idx} style={{ padding: '16px', borderBottom: idx < participant.completedActivities.slice(-5).length - 1 ? '1px solid #e2e8f0' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><div style={{ fontWeight: 'bold', color: '#2d3748' }}>{activity?.name}</div><div style={{ fontSize: '12px', color: '#718096' }}>{new Date(completion.date).toLocaleDateString()}</div></div><span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: '#c6f6d5', color: '#276749', fontSize: '14px', fontWeight: 'bold' }}>+{completion.points} XP</span></div>;
-                  })}
-                </div>
-              </>
-            )}
+        return (<div>
+          <div style={{ background: 'linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,20,50,0.95) 100%)', border: `3px solid ${color.primary}`, borderRadius: '24px', padding: '32px', textAlign: 'center', marginBottom: '24px', boxShadow: `0 0 50px ${color.primary}40` }}>
+            <div style={{ width: '110px', height: '110px', borderRadius: '50%', backgroundColor: `${color.primary}20`, border: `3px solid ${color.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', margin: '0 auto 16px', boxShadow: `0 0 30px ${color.primary}60`, animation: 'float 3s ease-in-out infinite' }}>{avatar?.emoji}</div>
+            <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontFamily: 'Orbitron, sans-serif', color: color.primary, textShadow: `0 0 20px ${color.primary}` }}>{participant.name}</h1>
+            <div style={{ fontSize: '16px', color: '#888', marginBottom: '20px' }}>Age {participant.age} • {avatar?.name}</div>
+            <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '20px', border: `1px solid ${color.primary}40` }}><div style={{ fontSize: '28px', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif' }}><span style={{ marginRight: '8px' }}>{currentLevel?.emoji}</span><span style={{ color: '#ffff00', textShadow: '0 0 10px #ffff00' }}>{currentLevel?.name}</span></div><div style={{ marginBottom: '8px' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px', fontFamily: 'Orbitron, sans-serif' }}><span style={{ color: color.primary }}>{participant.xp} XP</span>{nextLevel && <span style={{ color: '#666' }}>{nextLevel.minXP} XP</span>}</div><div style={{ height: '10px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden', border: `1px solid ${color.primary}40` }}><div style={{ height: '100%', width: `${progressToNext}%`, background: color.gradient, borderRadius: '5px', boxShadow: `0 0 15px ${color.primary}` }} /></div></div>{nextLevel && <div style={{ fontSize: '13px', color: '#888' }}>{nextLevel.minXP - participant.xp} XP to {nextLevel.name}</div>}</div>
           </div>
-        );
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}><div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: '#00ffff' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>🏆</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{stats.totalCompleted}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>Completed</div></div><div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: '#ffff00' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>⭐</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffff00', fontFamily: 'Orbitron, sans-serif' }}>{participant.xp}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>Total XP</div></div><div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: '#ff00ff' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>🏅</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff00ff', fontFamily: 'Orbitron, sans-serif' }}>{(participant.earnedBadges?.length || 0) + (participant.avatarBadges?.length || 0)}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>Badges</div></div></div>
+          <h2 style={{ color: '#ff00ff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>🏅 BADGES</h2>
+          <div style={{ marginBottom: '16px' }}><h3 style={{ color: '#00ffff', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif', fontSize: '14px' }}>{avatar?.emoji} {avatar?.name.toUpperCase()} PROGRESSION</h3><div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>{avatarSpecificBadges.map(badge => { const earned = participant.avatarBadges?.includes(badge.id); return (<div key={badge.id} title={`${badge.name}: ${badge.description}`} className="neon-card" style={{ borderRadius: '12px', padding: '12px', textAlign: 'center', flex: '1', opacity: earned ? 1 : 0.3, borderColor: earned ? color.primary : '#333', boxShadow: earned ? `0 0 20px ${color.primary}40` : 'none' }}><div style={{ fontSize: '32px', filter: earned ? `drop-shadow(0 0 10px ${color.primary})` : 'grayscale(100%)' }}>{badge.emoji}</div><div style={{ fontSize: '10px', color: earned ? color.primary : '#666', marginTop: '4px', fontFamily: 'Orbitron, sans-serif' }}>{badge.name}</div><div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>({badge.threshold}x)</div></div>); })}</div></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(75px, 1fr))', gap: '10px', marginBottom: '24px' }}>{BADGES.map(badge => { const earned = participant.earnedBadges?.includes(badge.id); return (<div key={badge.id} title={`${badge.name}: ${badge.description}`} className="neon-card" style={{ borderRadius: '12px', padding: '10px', textAlign: 'center', opacity: earned ? 1 : 0.25, borderColor: earned ? '#00ffff' : '#333' }}><div style={{ fontSize: '28px', filter: earned ? 'drop-shadow(0 0 8px #00ffff)' : 'grayscale(100%)' }}>{badge.emoji}</div><div style={{ fontSize: '9px', color: earned ? '#00ffff' : '#666', marginTop: '4px' }}>{badge.name}</div></div>); })}</div>
+          {participant.completedActivities?.length > 0 && (<><h2 style={{ color: '#00ffff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>📜 RECENT MISSIONS</h2><div className="neon-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>{participant.completedActivities.slice(-5).reverse().map((completion, idx) => { const activity = ACTIVITY_LIBRARY.find(a => a.id === completion.activityId); return (<div key={idx} style={{ padding: '16px', borderBottom: idx < participant.completedActivities.slice(-5).length - 1 ? '1px solid #222' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><div style={{ fontWeight: 'bold', color: '#fff' }}>{activity?.name}</div><div style={{ fontSize: '12px', color: '#666' }}>{new Date(completion.date).toLocaleDateString()}</div></div><span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(0,255,0,0.1)', color: '#00ff00', fontSize: '14px', fontWeight: 'bold', border: '1px solid #00ff00', fontFamily: 'Orbitron, sans-serif' }}>+{completion.points}</span></div>); })}</div></>)}
+        </div>);
       };
 
-      return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
-          <Confetti active={showConfetti} />
-          <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
-          <LevelUpPopup level={newLevel} onClose={() => setNewLevel(null)} />
-          {pointsPopup && <PointsPopup points={pointsPopup.points} participantName={pointsPopup.participantName} onClose={() => setPointsPopup(null)} />}
-          {showWheel && (
-            <SpinningWheel
-              activities={getEligibleActivities()}
-              onComplete={(activity) => {
-                setShowWheel(false);
-                setSearchQuery(activity.name);
-                setActivityFilter('all');
-                setView('activities');
-              }}
-              onClose={() => setShowWheel(false)}
-            />
-          )}
-          <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-            {view !== 'dashboard' && (
-              <button onClick={() => { setView('dashboard'); setSelectedParticipant(null); setSearchQuery(''); }} style={{ marginBottom: '16px', padding: '10px 20px', borderRadius: '25px', border: 'none', background: 'white', color: '#667eea', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>← Back to Home</button>
-            )}
-            {view === 'dashboard' && renderDashboard()}
-            {view === 'activities' && renderActivities()}
-            {view === 'favorites' && renderFavorites()}
-            {view === 'settings' && <Settings participants={participants} equipment={equipment} activityNotes={activityNotes} onSaveParticipant={saveParticipant} onDeleteParticipant={deleteParticipant} onToggleEquipment={toggleEquipment} />}
-            {view === 'participant' && renderParticipantDetail()}
-            <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-around', padding: '12px 0', boxShadow: '0 -4px 20px rgba(0,0,0,0.1)' }}>
-              {[{ id: 'dashboard', icon: '🏠', label: 'Home' }, { id: 'activities', icon: '🎯', label: 'Activities' }, { id: 'favorites', icon: '❤️', label: 'Favorites' }, { id: 'settings', icon: '⚙️', label: 'Settings' }].map(nav => (
-                <button key={nav.id} onClick={() => { setView(nav.id); setSelectedParticipant(null); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', color: view === nav.id ? '#667eea' : '#718096' }}>
-                  <span style={{ fontSize: '24px' }}>{nav.icon}</span>
-                  <span style={{ fontSize: '12px', fontWeight: view === nav.id ? 'bold' : 'normal' }}>{nav.label}</span>
-                </button>
-              ))}
-            </div>
-            <div style={{ height: '80px' }} />
-          </div>
+      return (<div style={{ minHeight: '100vh', position: 'relative', zIndex: 2 }}>
+        <StarField /><div className="grid-overlay" /><div className="scanlines" />
+        <Confetti active={showConfetti} />
+        <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
+        <LevelUpPopup level={newLevel} onClose={() => setNewLevel(null)} />
+        {pointsPopup && <PointsPopup points={pointsPopup.points} participantName={pointsPopup.participantName} onClose={() => setPointsPopup(null)} />}
+        {showWheel && <SpinningWheel activities={getEligibleActivities()} onComplete={(activity) => { setShowWheel(false); setSearchQuery(activity.name); setActivityFilter('all'); setView('activities'); }} onClose={() => setShowWheel(false)} />}
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 3 }}>
+          {view !== 'dashboard' && (<button onClick={() => { setView('dashboard'); setSelectedParticipant(null); setSearchQuery(''); }} style={{ marginBottom: '16px', padding: '10px 20px', borderRadius: '25px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 15px rgba(0,255,255,0.2)' }}>← BACK</button>)}
+          {view === 'dashboard' && renderDashboard()}
+          {view === 'activities' && renderActivities()}
+          {view === 'favorites' && renderFavorites()}
+          {view === 'settings' && <Settings participants={participants} equipment={equipment} activityNotes={activityNotes} onSaveParticipant={saveParticipant} onDeleteParticipant={deleteParticipant} onToggleEquipment={toggleEquipment} />}
+          {view === 'participant' && renderParticipantDetail()}
+          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(10,10,26,0.98) 0%, rgba(10,10,26,0.95) 100%)', borderTop: '2px solid #00ffff', display: 'flex', justifyContent: 'space-around', padding: '12px 0', boxShadow: '0 -5px 30px rgba(0,255,255,0.2)', zIndex: 100 }}>{[{ id: 'dashboard', icon: '🏠', label: 'HOME' }, { id: 'activities', icon: '🎯', label: 'MISSIONS' }, { id: 'favorites', icon: '💖', label: 'FAVS' }, { id: 'settings', icon: '⚙️', label: 'COMMAND' }].map(nav => (<button key={nav.id} onClick={() => { setView(nav.id); setSelectedParticipant(null); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', color: view === nav.id ? '#00ffff' : '#666' }}><span style={{ fontSize: '24px', filter: view === nav.id ? 'drop-shadow(0 0 10px #00ffff)' : 'none' }}>{nav.icon}</span><span style={{ fontSize: '10px', fontWeight: view === nav.id ? 'bold' : 'normal', fontFamily: 'Orbitron, sans-serif', letterSpacing: '1px' }}>{nav.label}</span></button>))}</div>
+          <div style={{ height: '90px' }} />
         </div>
-      );
+      </div>);
     }
 
     ReactDOM.render(<App />, document.getElementById('root'));
