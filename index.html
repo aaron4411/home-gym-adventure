@@ -352,7 +352,7 @@
       const deleteParticipant = (id) => setParticipants(prev => prev.filter(p => p.id !== id));
       const toggleEquipment = (equipmentId) => setEquipment(prev => prev.includes(equipmentId) ? prev.filter(id => id !== equipmentId) : [...prev, equipmentId]);
       const updateActivityNote = (activityId, note) => { setActivityNotes(prev => { if (!note || note.trim() === '') { const { [activityId]: removed, ...rest } = prev; return rest; } return { ...prev, [activityId]: note }; }); };
-      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => a.equipment.every(eq => equipment.includes(eq)) && (participants.length === 0 || participants.some(p => p.age >= a.minAge && p.age <= a.maxAge)));
+      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => a.equipment.every(eq => equipment.includes(eq)) && (participants.length === 0 || participants.some(p => { const age = Number(p.age); return isNaN(age) || (age >= a.minAge && age <= a.maxAge); })));
       const getFilteredActivities = () => { let filtered = ACTIVITY_LIBRARY; if (activityFilter !== 'all') filtered = filtered.filter(a => a.category === activityFilter); if (searchQuery) { const query = searchQuery.toLowerCase(); filtered = filtered.filter(a => a.name.toLowerCase().includes(query) || a.description.toLowerCase().includes(query)); } filtered.sort((a, b) => { const aHas = a.equipment.every(eq => equipment.includes(eq)); const bHas = b.equipment.every(eq => equipment.includes(eq)); return aHas === bHas ? 0 : aHas ? -1 : 1; }); return filtered; };
 
       const renderDashboard = () => (<div>
