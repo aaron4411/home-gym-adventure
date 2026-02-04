@@ -272,10 +272,26 @@
     };
 
     const ParticipantEditor = ({ participant, onSave, onCancel, onDelete, isNew }) => {
+      const [stableId] = useState(() => participant?.id || Date.now().toString());
       const [name, setName] = useState(participant?.name || '');
       const [age, setAge] = useState(participant?.age?.toString() || '');
       const [avatar, setAvatar] = useState(participant?.avatar || 'trex');
       const [color, setColor] = useState(participant?.color || 'cyan');
+
+      const handleSaveClick = () => {
+        const participantData = {
+          id: stableId,
+          name,
+          age: parseInt(age),
+          avatar,
+          color,
+          xp: participant?.xp || 0,
+          completedActivities: participant?.completedActivities || [],
+          earnedBadges: participant?.earnedBadges || [],
+          avatarBadges: participant?.avatarBadges || []
+        };
+        onSave(participantData);
+      };
 
       return (<div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
         <h3 style={{ margin: '0 0 16px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{isNew ? 'NEW PILOT' : 'EDIT PILOT'}</h3>
@@ -283,7 +299,7 @@
         <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AGE</label><input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" min="1" max="18" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /></div>
         <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AVATAR</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{AVATARS.map(a => (<button key={a.id} onClick={() => setAvatar(a.id)} style={{ width: '52px', height: '52px', borderRadius: '12px', border: avatar === a.id ? '3px solid #00ffff' : '2px solid #333', background: avatar === a.id ? 'rgba(0,255,255,0.1)' : 'rgba(0,0,0,0.3)', fontSize: '28px', cursor: 'pointer', boxShadow: avatar === a.id ? '0 0 15px #00ffff' : 'none' }}>{a.emoji}</button>))}</div></div>
         <div style={{ marginBottom: '20px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>COLOR THEME</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{COLOR_OPTIONS.map(c => (<button key={c.id} onClick={() => setColor(c.id)} style={{ width: '52px', height: '52px', borderRadius: '12px', border: color === c.id ? '3px solid #fff' : '2px solid transparent', background: c.gradient, cursor: 'pointer', boxShadow: color === c.id ? `0 0 20px ${c.primary}` : c.glow }} />))}</div></div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}><button onClick={() => onSave({ ...participant, name, age: parseInt(age), avatar, color })} disabled={!name || !age} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #00ff00', background: 'transparent', color: name && age ? '#00ff00' : '#444', fontWeight: 'bold', fontSize: '14px', cursor: name && age ? 'pointer' : 'not-allowed', fontFamily: 'Orbitron, sans-serif', boxShadow: name && age ? '0 0 15px rgba(0,255,0,0.3)' : 'none' }}>{isNew ? 'ADD PILOT' : 'SAVE'}</button><button onClick={onCancel} style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>CANCEL</button>{!isNew && (<button onClick={() => onDelete(participant.id)} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #ff0000', background: 'transparent', color: '#ff0000', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', marginLeft: 'auto', fontFamily: 'Orbitron, sans-serif' }}>DELETE</button>)}</div>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}><button onClick={handleSaveClick} disabled={!name || !age} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #00ff00', background: 'transparent', color: name && age ? '#00ff00' : '#444', fontWeight: 'bold', fontSize: '14px', cursor: name && age ? 'pointer' : 'not-allowed', fontFamily: 'Orbitron, sans-serif', boxShadow: name && age ? '0 0 15px rgba(0,255,0,0.3)' : 'none' }}>{isNew ? 'ADD PILOT' : 'SAVE'}</button><button onClick={onCancel} style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>CANCEL</button>{!isNew && (<button onClick={() => onDelete(stableId)} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #ff0000', background: 'transparent', color: '#ff0000', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', marginLeft: 'auto', fontFamily: 'Orbitron, sans-serif' }}>DELETE</button>)}</div>
       </div>);
     };
 
