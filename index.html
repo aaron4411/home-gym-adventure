@@ -183,8 +183,9 @@
 
     // X(id, name, category, intensity, points, seconds, equipment, muscles, skills, work, description, [rookie, pro, elite], extra)
     const X = (id, name, category, difficulty, points, durationSec, equipment, muscles, skills, work, description, tiers, extra = {}) =>
-      ({ id, name, category, difficulty, points, durationSec, equipment, muscles, skills, work, description, tiers: { rookie: tiers[0], pro: tiers[1], elite: tiers[2] }, minAge: 0, tags: [], ...extra });
-    // minAge 0 = anyone (players under 9 get Rookie targets). Only a few exercises set a real minimum age.
+      ({ id, name, category, difficulty, points, durationSec, equipment, muscles, skills, work, description, tiers: { rookie: tiers[0], pro: tiers[1], elite: tiers[2] }, tags: [], ...extra });
+    // No age limits: every player can do every exercise. Players under 9 get Rookie targets.
+    // recommendedAge (optional) only shows an advisory label.
 
     const ACTIVITY_LIBRARY = [
       // ---------- JUMP ----------
@@ -192,7 +193,7 @@
       X(2, 'Frog Pond Hop', 'jump', 'Medium', 20, 90, ['stepping_stones'], ['calves', 'quads', 'glutes'], ['balance', 'proprio', 'coordination'], ['blast'], 'Hop stone to stone without touching the "water". Stick each landing for one second.', ['2 crossings, two-foot hops', '3 crossings, single-leg hops on the last 3 stones', '4 crossings all single-leg, switch legs each lap']),
       X(3, 'Kangaroo Box Jumps', 'jump', 'Hard', 25, 90, ['plyo_6'], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Jump up onto the box, land softly in a squat, stand tall, step down (never jump down).', ['6" box · 6 jumps', '12" box · 8 jumps', '18" box · 10 jumps (or 12" with a tuck)']),
       X(4, 'Grasshopper Challenge', 'agility', 'Medium', 20, 45, ['cones'], ['calves', 'quads'], ['agility', 'coordination'], ['quick', 'blast'], 'Side-to-side hops over a cone. Count your hops and try to beat your record.', ['20 seconds', '30 seconds', '45 seconds — beat your best']),
-      X(44, 'Plyo Power Staircase', 'jump', 'Hard', 40, 120, ['plyo_6', 'plyo_12', 'plyo_18'], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Jump up the boxes from smallest to biggest, stepping down between each. Full reset before each jump.', ['6" and 12" only · 3 rounds', 'All 3 boxes · 3 rounds', 'All 3 boxes · 5 rounds'], { minAge: 11 }),
+      X(44, 'Plyo Power Staircase', 'jump', 'Hard', 40, 120, ['plyo_6', 'plyo_12', 'plyo_18'], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Jump up the boxes from smallest to biggest, stepping down between each. Full reset before each jump.', ['6" and 12" only · 3 rounds', 'All 3 boxes · 3 rounds', 'All 3 boxes · 5 rounds'], { recommendedAge: 11 }),
       X(56, 'Jump Squat Rockets', 'jump', 'Hard', 25, 60, [], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Squat until thighs are near parallel, then launch straight up. Land soft and go right into the next one.', ['8 regular squats + 4 jump squats', '12 jump squats', '20 jump squats']),
       X(61, 'Tuck Jump Launch', 'jump', 'Hard', 25, 45, [], ['quads', 'core', 'calves'], ['proprio'], ['blast'], 'Jump high and pull your knees to your chest. Land quietly on the balls of your feet.', ['5 tuck jumps (rest as needed)', '8 tuck jumps', '12 tuck jumps in a row']),
       X(62, 'Broad Jump Distance', 'jump', 'Medium', 20, 90, ['cones'], ['glutes', 'hamstrings', 'quads'], ['proprio', 'coordination'], ['blast'], 'Swing your arms and jump forward as far as you can. Mark your best landing with a cone.', ['5 jumps, mark your best', '8 jumps, beat your mark', '10 jumps + 3 bounds in a row']),
@@ -440,14 +441,12 @@
     const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
     const fmtDuration = (s) => (s < 90 ? `${s} sec` : `~${Math.round(s / 60)} min`);
     const hasEquipmentFor = (activity, equipment) => activity.equipment.every(eq => equipment.includes(eq));
-    const ageOk = (activity, age) => { const a = Number(age); return isNaN(a) || a >= activity.minAge; };
     const shuffle = (arr) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const getActivity = (id) => ACTIVITY_LIBRARY.find(a => a.id === id);
 
     // Picks the exercises for one run of a course, using only what this group can do.
     const buildCourseSteps = (course, equipment, players) => {
-      const youngest = Math.min(...players.map(p => Number(p.age) || 99), 99);
-      const usable = (a) => a && hasEquipmentFor(a, equipment) && youngest >= a.minAge;
+      const usable = (a) => a && hasEquipmentFor(a, equipment);
       if (course.slots) {
         const chosen = [];
         course.slots.forEach(slot => { const pick = shuffle(slot).map(getActivity).find(a => usable(a) && !chosen.includes(a)); if (pick) chosen.push(pick); });
@@ -514,9 +513,8 @@
       const [noteText, setNoteText] = useState(activityNotes[activity.id] || '');
       const hasAllEquipment = hasEquipmentFor(activity, availableEquipment);
       const missingEquipment = activity.equipment.filter(eq => !availableEquipment.includes(eq));
-      const eligiblePlayers = participants.filter(p => ageOk(activity, p.age));
-      const ageBlocked = participants.length > 0 && eligiblePlayers.length === 0;
-      const usable = hasAllEquipment && !ageBlocked;
+      const eligiblePlayers = participants;
+      const usable = hasAllEquipment;
       const difficultyColors = { 'Easy': '#00ff00', 'Medium': '#ffff00', 'Hard': '#ff4040' };
       const handleSaveNote = () => { onUpdateNote(activity.id, noteText); setShowNoteInput(false); };
 
@@ -527,7 +525,7 @@
               <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', color: difficultyColors[activity.difficulty], border: `1px solid ${difficultyColors[activity.difficulty]}`, fontFamily: 'Orbitron, sans-serif' }}>{activity.difficulty} intensity</span>
               <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: 'rgba(255,255,255,0.1)', color: '#aaa' }}>⏱ {fmtDuration(activity.durationSec)}</span>
               <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', color: '#00ffff', border: '1px solid #00ffff', fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold' }}>+{activity.points} XP</span>
-              {activity.minAge > 0 && <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', color: '#ff8000', border: '1px solid #ff8000' }}>Ages {activity.minAge}+</span>}
+              {activity.recommendedAge && <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', color: '#ff8000', border: '1px solid #ff8000' }}>Best for ages {activity.recommendedAge}+</span>}
             </div></div>
           <button onClick={() => onToggleFavorite(activity.id)} style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', padding: '4px', filter: isFavorite ? 'drop-shadow(0 0 10px #ff0080)' : 'none' }}>{isFavorite ? '💖' : '🖤'}</button>
         </div>
@@ -537,7 +535,6 @@
         {activity.equipment.length > 0 && (<div style={{ marginBottom: '12px' }}><span style={{ fontSize: '14px', color: '#888' }}>Equipment: </span>{activity.equipment.map(eq => { const equipment = EQUIPMENT_OPTIONS.find(e => e.id === eq); const isMissing = missingEquipment.includes(eq); return <span key={eq} style={{ display: 'inline-block', padding: '4px 8px', margin: '2px 4px', borderRadius: '8px', fontSize: '12px', backgroundColor: isMissing ? 'rgba(255,0,0,0.2)' : 'rgba(0,255,255,0.1)', color: isMissing ? '#ff4444' : '#00ffff', border: `1px solid ${isMissing ? '#ff4444' : '#00ffff'}` }}>{equipment?.emoji} {equipment?.name}</span>; })}</div>)}
         {usable && eligiblePlayers.length > 0 && (<div style={{ marginBottom: '16px' }}><div style={{ fontSize: '14px', color: '#00ffff', marginBottom: '8px', fontFamily: 'Orbitron, sans-serif' }}>TAP TO COMPLETE:</div><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{eligiblePlayers.map(p => { const avatar = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; return (<button key={p.id} onClick={() => onComplete(activity, p.id)} style={{ padding: '10px 16px', borderRadius: '25px', border: `2px solid ${color.primary}`, background: 'transparent', color: color.primary, fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: color.glow }}><span>{avatar?.emoji}</span><span>{p.name}</span></button>); })}{eligiblePlayers.length > 1 && (<button onClick={() => onComplete(activity, eligiblePlayers.map(p => p.id))} style={{ padding: '10px 20px', borderRadius: '25px', border: '2px solid #ffff00', background: 'transparent', color: '#ffff00', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,255,0,0.3)', fontFamily: 'Orbitron, sans-serif' }}>👨‍👩‍👧‍👦 ALL</button>)}</div></div>)}
         {!hasAllEquipment && (<div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,0,0,0.1)', color: '#ff4444', fontSize: '14px', marginBottom: '16px', border: '1px solid #ff4444' }}>⚠️ Missing equipment — enable it in Command Center</div>)}
-        {hasAllEquipment && ageBlocked && (<div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,128,0,0.1)', color: '#ff8000', fontSize: '14px', marginBottom: '16px', border: '1px solid #ff8000' }}>🔒 For ages {activity.minAge}+</div>)}
         <div style={{ borderTop: '1px solid #333', paddingTop: '12px' }}>{!showNoteInput ? (<button onClick={() => setShowNoteInput(true)} style={{ background: 'none', border: '1px dashed #444', borderRadius: '8px', padding: '8px 16px', color: '#666', fontSize: '14px', cursor: 'pointer', width: '100%', textAlign: 'left' }}>{activityNotes[activity.id] ? `📝 ${activityNotes[activity.id]}` : '💡 Add suggestion or note...'}</button>) : (<div><textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add your suggestions..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /><div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}><button onClick={handleSaveNote} style={{ padding: '8px 16px', borderRadius: '8px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer' }}>Save</button><button onClick={() => { setShowNoteInput(false); setNoteText(activityNotes[activity.id] || ''); }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', cursor: 'pointer' }}>Cancel</button></div></div>)}</div>
       </div>);
     };
@@ -578,7 +575,7 @@
           <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#888', marginBottom: '8px' }}>WHO'S PLAYING?</div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>{participants.map(p => { const on = playerIds.includes(p.id); const av = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; const tier = getTier(p.age); return (<button key={p.id} onClick={() => toggle(p.id)} style={{ padding: '10px 14px', borderRadius: '14px', border: `2px solid ${on ? color.primary : '#333'}`, background: on ? `${color.primary}18` : 'transparent', color: on ? color.primary : '#666', cursor: 'pointer', fontWeight: 'bold' }}>{on ? '✓ ' : ''}{av?.emoji} {p.name} <span style={{ fontSize: '11px', color: tier.color }}>{tier.label}</span></button>); })}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}><div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#888' }}>THE PLAN · {fmtDuration(total)}</div><button onClick={() => setSteps(buildCourseSteps(course, equipment, players))} style={{ padding: '6px 14px', borderRadius: '10px', border: '1px solid #00ffff', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontSize: '13px' }}>🔀 Shuffle</button></div>
-          {steps.length === 0 ? (<div style={{ padding: '16px', color: '#ff8000', border: '1px solid #ff8000', borderRadius: '10px', marginBottom: '16px' }}>{players.length === 0 ? 'Pick at least one player.' : poolIds.map(getActivity).some(a => a && hasEquipmentFor(a, equipment)) ? `Some players are too young for every exercise left in this course (youngest: ${Math.min(...players.map(p => Number(p.age) || 99))}). Try unselecting them.` : 'No exercises available yet — this course needs equipment you haven’t checked off. Tap what you have:'}</div>) : (
+          {steps.length === 0 ? (<div style={{ padding: '16px', color: '#ff8000', border: '1px solid #ff8000', borderRadius: '10px', marginBottom: '16px' }}>{players.length === 0 ? 'Pick at least one player.' : 'No exercises available yet — this course needs equipment you haven’t checked off. Tap what you have:'}</div>) : (
             <ol style={{ listStyle: 'none', marginBottom: '16px' }}>{steps.map((a, i) => (<li key={a.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', marginBottom: '6px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid #2a2a4a', color: '#ddd' }}><span><span style={{ color: course.color, fontFamily: 'Orbitron, sans-serif', marginRight: '10px' }}>{i + 1}</span>{a.name}<span style={{ color: '#777', fontSize: '12px', marginLeft: '8px' }}>{a.work.map(w => WORK_TYPES[w].emoji).join(' ')} {a.muscles.slice(0, 3).map(m => MUSCLES[m].label).join(', ')}</span></span><span style={{ color: '#888', fontSize: '13px', whiteSpace: 'nowrap' }}>{fmtDuration(a.durationSec)}</span></li>))}</ol>)}
           {steps.length > 0 && steps.length < course.count && <div style={{ color: '#ff8000', fontSize: '13px', marginBottom: '8px' }}>Only {steps.length} of {course.count} exercises fit your equipment. Have any of these?</div>}
           {players.length > 0 && steps.length < course.count && unlockList.length > 0 && (<div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>{unlockList.map(([eq, n]) => { const item = EQUIPMENT_OPTIONS.find(e => e.id === eq); return (<button key={eq} onClick={() => onToggleEquipment(eq)} style={{ padding: '8px 12px', borderRadius: '10px', border: '1px dashed #00ff00', background: 'transparent', color: '#00ff00', cursor: 'pointer', fontSize: '13px' }}>+ {item?.emoji} {item?.name} <span style={{ color: '#888' }}>(unlocks {n})</span></button>); })}</div>)}
@@ -769,12 +766,12 @@
       const deleteParticipant = (id) => setParticipants(prev => prev.filter(p => p.id !== id));
       const toggleEquipment = (id) => setEquipment(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
       const updateActivityNote = (activityId, note) => { setActivityNotes(prev => { if (!note || note.trim() === '') { const { [activityId]: removed, ...rest } = prev; return rest; } return { ...prev, [activityId]: note }; }); };
-      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => hasEquipmentFor(a, equipment) && (participants.length === 0 || participants.some(p => ageOk(a, p.age))));
+      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => hasEquipmentFor(a, equipment));
       const matchesFocus = (a) => { if (!focusFilter) return true; const [kind, id] = focusFilter.split(':'); return kind === 'm' ? a.muscles.includes(id) : kind === 's' ? a.skills.includes(id) : a.work.includes(id); };
       const getFilteredActivities = () => {
         let filtered = ACTIVITY_LIBRARY.filter(a => (activityFilter === 'all' || a.category === activityFilter) && matchesFocus(a));
         if (searchQuery) { const q = searchQuery.toLowerCase(); filtered = filtered.filter(a => a.name.toLowerCase().includes(q) || a.description.toLowerCase().includes(q)); }
-        const usable = (a) => hasEquipmentFor(a, equipment) && (participants.length === 0 || participants.some(p => ageOk(a, p.age)));
+        const usable = (a) => hasEquipmentFor(a, equipment);
         return [...filtered].sort((a, b) => (usable(a) === usable(b) ? 0 : usable(a) ? -1 : 1));
       };
 
