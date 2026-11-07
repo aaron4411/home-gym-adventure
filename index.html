@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🦖 Home Gym Adventure 🦋</title>
+  <title>Home Gym Adventure</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -29,6 +29,9 @@
     .arcade-btn { font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px; position: relative; overflow: hidden; }
     .arcade-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
     .arcade-btn:hover::before { left: 100%; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin: 2px 4px 2px 0; max-width: 100%; }
+    @keyframes timeUp { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    select { font-family: 'Quicksand', sans-serif; }
   </style>
 </head>
 <body>
@@ -120,7 +123,52 @@
       { id: 'zen_master', name: 'Zen Master', emoji: '☯️', description: 'Complete 10 yoga activities', condition: (s) => s.yogaCompleted >= 10 },
       { id: 'obstacle_runner', name: 'Obstacle Runner', emoji: '🏃', description: 'Complete 3 obstacle courses', condition: (s) => s.obstacleCompleted >= 3 },
       { id: 'ninja_warrior', name: 'Ninja Warrior', emoji: '🥷', description: 'Complete 10 obstacle courses', condition: (s) => s.obstacleCompleted >= 10 },
+      { id: 'core_starter', name: 'Core Cadet', emoji: '🧱', description: 'Complete 3 core activities', condition: (s) => s.coreCompleted >= 3 },
+      { id: 'core_hero', name: 'Iron Core', emoji: '🛡️', description: 'Complete 10 core activities', condition: (s) => s.coreCompleted >= 10 },
+      { id: 'cardio_starter', name: 'Heart Pumper', emoji: '❤️', description: 'Complete 3 cardio activities', condition: (s) => s.cardioCompleted >= 3 },
+      { id: 'cardio_hero', name: 'Endurance Engine', emoji: '🔋', description: 'Complete 10 cardio activities', condition: (s) => s.cardioCompleted >= 10 },
+      { id: 'agility_starter', name: 'Quick Feet', emoji: '🪜', description: 'Complete 3 agility activities', condition: (s) => s.agilityCompleted >= 3 },
+      { id: 'agility_hero', name: 'Lightning Legs', emoji: '⚡', description: 'Complete 10 agility activities', condition: (s) => s.agilityCompleted >= 10 },
+      { id: 'course_first', name: 'Course Cadet', emoji: '🧭', description: 'Finish your first course', condition: (s) => s.coursesCompleted >= 1 },
+      { id: 'course_five', name: 'Course Crusher', emoji: '🏁', description: 'Finish 5 courses', condition: (s) => s.coursesCompleted >= 5 },
+      { id: 'course_variety', name: 'All-Rounder', emoji: '🌈', description: 'Finish 5 different courses', condition: (s) => s.uniqueCourses >= 5 },
     ];
+    // ===== AGE TIERS =====
+    // Every exercise has a target for each tier. A player's age picks their tier.
+    const TIERS = [
+      { id: 'rookie', label: 'Rookie', ages: '9–10', maxAge: 10, color: '#00ff00', emoji: '🟢' },
+      { id: 'pro', label: 'Pro', ages: '11–12', maxAge: 12, color: '#ffff00', emoji: '🟡' },
+      { id: 'elite', label: 'Elite', ages: '13+', maxAge: 999, color: '#ff00ff', emoji: '🟣' },
+    ];
+    const getTier = (age) => { const a = Number(age); if (isNaN(a)) return TIERS[1]; return TIERS.find(t => a <= t.maxAge); };
+
+    // ===== WHAT EACH EXERCISE TRAINS =====
+    const MUSCLES = {
+      core: { label: 'Core / Abs', emoji: '🧱' }, back: { label: 'Back', emoji: '🔙' }, chest: { label: 'Chest', emoji: '🛡️' },
+      shoulders: { label: 'Shoulders', emoji: '🏔️' }, biceps: { label: 'Biceps', emoji: '💪' }, triceps: { label: 'Triceps', emoji: '🦾' },
+      glutes: { label: 'Glutes', emoji: '🍑' }, quads: { label: 'Quads', emoji: '🦵' }, hamstrings: { label: 'Hamstrings', emoji: '🦿' },
+      calves: { label: 'Calves', emoji: '🦶' }, heart: { label: 'Heart & Lungs', emoji: '❤️' },
+    };
+    const SKILLS = {
+      balance: { label: 'Balance', emoji: '⚖️' },
+      proprio: { label: 'Body Awareness (proprioception)', emoji: '🧠' },
+      coordination: { label: 'Coordination', emoji: '🔀' },
+      agility: { label: 'Agility', emoji: '🐆' },
+      handeye: { label: 'Hand-Eye', emoji: '👀' },
+      aim: { label: 'Aim', emoji: '🎯' },
+      flexibility: { label: 'Flexibility', emoji: '🌀' },
+      rhythm: { label: 'Rhythm', emoji: '🎵' },
+      reaction: { label: 'Reaction Time', emoji: '⚡' },
+    };
+    const WORK_TYPES = {
+      blast: { label: 'Blast-Off', emoji: '🚀', color: '#ff4040', info: 'Explosive power — fast-twitch muscles fire all at once (jumps, sprints, throws).' },
+      strength: { label: 'Strength Builder', emoji: '🏋️', color: '#ff8000', info: 'Slow, controlled reps against resistance or body weight to build muscle strength.' },
+      hold: { label: 'Freeze Hold', emoji: '🧊', color: '#40c0ff', info: 'Isometric work — holding still under tension (planks, wall sits, balances).' },
+      engine: { label: 'Endurance Engine', emoji: '🔋', color: '#00ff80', info: 'Keep going! Trains your heart, lungs and muscles to last longer.' },
+      quick: { label: 'Quick Feet', emoji: '⚡', color: '#ffff00', info: 'Speed and agility — fast feet, quick direction changes.' },
+      skill: { label: 'Skill Practice', emoji: '🎮', color: '#00ffff', info: 'Lower effort, high focus — training brain and body to work together (aiming, catching, timing).' },
+      stretch: { label: 'Stretch & Flex', emoji: '🌀', color: '#c080ff', info: 'Lengthens muscles and loosens joints for flexibility and recovery.' },
+    };
 
     const EQUIPMENT_OPTIONS = [
       { id: 'cones', name: 'Saucer Cones', emoji: '🔶' }, { id: 'foam_balls', name: 'Foam Balls', emoji: '🔴' },
@@ -129,76 +177,166 @@
       { id: 'yoga_mat', name: 'Yoga Mat', emoji: '🧘' }, { id: 'yoga_blocks', name: 'Yoga Blocks', emoji: '🧱' },
       { id: 'weights', name: 'Light Weights', emoji: '🏋️' }, { id: 'balance_beam', name: 'Balance Beam', emoji: '➖' },
       { id: 'barre', name: 'Ballet Barre', emoji: '🩰' }, { id: 'stepping_stones', name: 'Stepping Stones', emoji: '🪨' },
+      { id: 'agility_ladder', name: 'Agility Ladder', emoji: '🪜' },
       { id: 'blankets', name: 'Blankets', emoji: '🛏️' }, { id: 'spotify', name: 'Music', emoji: '🎵' }, { id: 'lights', name: 'Lights', emoji: '💡' },
     ];
 
+    // X(id, name, category, intensity, points, seconds, equipment, muscles, skills, work, description, [rookie, pro, elite], extra)
+    const X = (id, name, category, difficulty, points, durationSec, equipment, muscles, skills, work, description, tiers, extra = {}) =>
+      ({ id, name, category, difficulty, points, durationSec, equipment, muscles, skills, work, description, tiers: { rookie: tiers[0], pro: tiers[1], elite: tiers[2] }, minAge: 9, tags: [], ...extra });
+
     const ACTIVITY_LIBRARY = [
-      { id: 1, name: 'T-Rex Stomps', description: 'Stomp around like a mighty T-Rex! Do 10 big stomping jumps.', equipment: [], minAge: 3, maxAge: 12, points: 15, duration: '2 min', difficulty: 'Easy', category: 'jump', tags: ['jump', 'cardio'] },
-      { id: 2, name: 'Frog Pond Hop', description: 'Hop from stone to stone like a frog!', equipment: ['stepping_stones'], minAge: 3, maxAge: 10, points: 20, duration: '3 min', difficulty: 'Easy', category: 'jump', tags: ['jump', 'coordination'] },
-      { id: 3, name: 'Kangaroo Box Jumps', description: 'Jump up onto the plyo box like a kangaroo!', equipment: ['plyo_6'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'strength'] },
-      { id: 4, name: 'Grasshopper Challenge', description: 'How many jumps can you do in 30 seconds?', equipment: ['cones'], minAge: 4, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'speed'] },
-      { id: 5, name: 'Dinosaur Escape', description: 'A meteor is coming! Run through the cone obstacle course!', equipment: ['cones'], minAge: 4, maxAge: 12, points: 30, duration: '4 min', difficulty: 'Medium', category: 'jump', tags: ['jump', 'cardio', 'team'] },
-      { id: 6, name: 'Flamingo Stand', description: 'Stand on one leg like a flamingo! Hold for 20 seconds.', equipment: [], minAge: 3, maxAge: 12, points: 15, duration: '2 min', difficulty: 'Easy', category: 'balance', tags: ['balance'] },
-      { id: 7, name: 'Tightrope Walker', description: 'Walk across the balance beam like a circus performer!', equipment: ['balance_beam'], minAge: 3, maxAge: 10, points: 20, duration: '3 min', difficulty: 'Easy', category: 'balance', tags: ['balance', 'coordination'] },
-      { id: 8, name: 'Surfing Dino', description: 'Stand on the Bosu ball like surfing a wave!', equipment: ['bosu'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'core'] },
-      { id: 9, name: 'Eagle Pose Challenge', description: 'Do the yoga eagle pose!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'flexibility'] },
-      { id: 10, name: 'Stepping Stone River', description: 'Cross the lava river stepping only on stones!', equipment: ['stepping_stones'], minAge: 3, maxAge: 10, points: 25, duration: '4 min', difficulty: 'Medium', category: 'balance', tags: ['balance', 'coordination'] },
-      { id: 11, name: 'Stork Walk', description: 'Walk on beam with a yoga block on your head!', equipment: ['balance_beam', 'yoga_blocks'], minAge: 5, maxAge: 12, points: 30, duration: '3 min', difficulty: 'Hard', category: 'balance', tags: ['balance', 'coordination'] },
-      { id: 12, name: 'Bear Crawl Safari', description: 'Crawl like a bear around the room!', equipment: ['cones'], minAge: 3, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'cardio'] },
-      { id: 13, name: 'Gorilla Pounds', description: 'Beat your chest and do arm swings with weights!', equipment: ['weights'], minAge: 6, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength'] },
-      { id: 14, name: 'Crab Walk Race', description: 'Walk like a crab across the room! Race your family!', equipment: [], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'team'] },
-      { id: 15, name: 'Caterpillar Push-Ups', description: 'Walk hands out to push-up, do one, walk back up!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 25, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'flexibility'] },
-      { id: 16, name: 'Ant Lifts', description: 'Ants lift 50x their weight! Do 10 lifts over your head.', equipment: ['weights'], minAge: 6, maxAge: 12, points: 20, duration: '2 min', difficulty: 'Medium', category: 'strength', tags: ['strength'] },
-      { id: 17, name: 'Inchworm Walk', description: 'Walk like an inchworm across the yoga mat!', equipment: ['yoga_mat'], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'flexibility'] },
-      { id: 18, name: 'Dino Dance Party', description: 'Dance like different dinosaurs to the music!', equipment: ['spotify'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'dance', tags: ['cardio', 'team'] },
-      { id: 19, name: 'Freeze Dance Safari', description: 'Dance when music plays, freeze when it stops!', equipment: ['spotify'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'dance', tags: ['cardio', 'team'] },
-      { id: 20, name: 'Ballet Butterfly', description: 'Hold the barre and do 10 butterfly pliés!', equipment: ['barre'], minAge: 4, maxAge: 12, points: 20, duration: '3 min', difficulty: 'Easy', category: 'dance', tags: ['balance', 'flexibility'] },
-      { id: 21, name: 'Disco Lights Workout', description: 'Lights off = slow-mo, lights on = fast moves!', equipment: ['spotify', 'lights'], minAge: 4, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'dance', tags: ['cardio', 'team'] },
-      { id: 22, name: 'Jungle Expedition', description: 'Navigate the jungle! Jump, weave, balance!', equipment: ['plyo_6', 'cones', 'balance_beam'], minAge: 5, maxAge: 12, points: 40, duration: '6 min', difficulty: 'Medium', category: 'obstacle', tags: ['jump', 'balance', 'cardio'] },
-      { id: 23, name: 'Dinosaur Gauntlet', description: 'Escape the dinosaurs through the obstacle course!', equipment: ['blankets', 'plyo_6', 'cones'], minAge: 4, maxAge: 12, points: 35, duration: '5 min', difficulty: 'Medium', category: 'obstacle', tags: ['cardio', 'strength'] },
-      { id: 24, name: 'Bug Obstacle Course', description: 'Move like different bugs through the course!', equipment: ['cones', 'stepping_stones'], minAge: 3, maxAge: 10, points: 30, duration: '5 min', difficulty: 'Easy', category: 'obstacle', tags: ['cardio', 'coordination'] },
-      { id: 25, name: 'Mountain Climber Trail', description: 'Climb the mountain! Step up all the plyo boxes!', equipment: ['plyo_6', 'plyo_12', 'plyo_18'], minAge: 6, maxAge: 12, points: 35, duration: '4 min', difficulty: 'Hard', category: 'obstacle', tags: ['jump', 'strength'] },
-      { id: 26, name: 'Angry Birds', description: 'Stack yoga blocks and throw balls to knock them down!', equipment: ['foam_balls', 'yoga_blocks'], minAge: 3, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'target', tags: ['coordination', 'team'] },
-      { id: 27, name: 'Cone Bowling', description: 'Set up cones like bowling pins and roll!', equipment: ['cones', 'foam_balls'], minAge: 3, maxAge: 12, points: 20, duration: '5 min', difficulty: 'Easy', category: 'target', tags: ['coordination'] },
-      { id: 28, name: 'Pterodactyl Toss', description: 'Fly like a pterodactyl and toss the ball!', equipment: ['foam_balls', 'cones'], minAge: 4, maxAge: 12, points: 25, duration: '4 min', difficulty: 'Medium', category: 'target', tags: ['coordination'] },
-      { id: 29, name: 'Zoo Yoga', description: 'Do yoga poses named after animals!', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 20, duration: '5 min', difficulty: 'Easy', category: 'yoga', tags: ['flexibility', 'balance'] },
-      { id: 30, name: 'Dinosaur Stretches', description: 'Stretch like dinosaurs! Long neck, T-Rex arms!', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 15, duration: '4 min', difficulty: 'Easy', category: 'yoga', tags: ['flexibility'] },
-      { id: 31, name: 'Pretzel Pose Challenge', description: 'Can you twist like a pretzel?', equipment: ['yoga_mat', 'yoga_blocks'], minAge: 5, maxAge: 12, points: 25, duration: '4 min', difficulty: 'Medium', category: 'yoga', tags: ['flexibility', 'balance'] },
-      { id: 32, name: 'Partner Yoga Safari', description: 'Do yoga poses with a partner!', equipment: ['yoga_mat'], minAge: 5, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'yoga', tags: ['flexibility', 'team'] },
-      { id: 33, name: 'Hot Lava Floor', description: 'The floor is lava! Use equipment to cross!', equipment: ['stepping_stones', 'balance_beam', 'plyo_6'], minAge: 4, maxAge: 12, points: 30, duration: '5 min', difficulty: 'Medium', category: 'game', tags: ['balance', 'jump', 'team'] },
-      { id: 34, name: 'Animal Charades Workout', description: 'Act out animals while exercising!', equipment: [], minAge: 4, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
-      { id: 35, name: 'Simon Says Safari', description: 'Simon Says with animal movements!', equipment: [], minAge: 3, maxAge: 10, points: 20, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
-      { id: 36, name: 'Musical Stepping Stones', description: 'Walk on stones, freeze when music stops!', equipment: ['stepping_stones', 'spotify'], minAge: 3, maxAge: 10, points: 25, duration: '5 min', difficulty: 'Easy', category: 'game', tags: ['balance', 'team'] },
-      { id: 37, name: 'Blanket Fort Fitness', description: 'Build a fort and exercise in it!', equipment: ['blankets'], minAge: 3, maxAge: 10, points: 30, duration: '10 min', difficulty: 'Easy', category: 'game', tags: ['strength', 'team'] },
-      { id: 38, name: 'Treasure Hunt Workout', description: 'Find hidden balls, do jumping jacks each time!', equipment: ['foam_balls'], minAge: 3, maxAge: 10, points: 30, duration: '8 min', difficulty: 'Easy', category: 'game', tags: ['cardio', 'team'] },
-      { id: 39, name: 'Sleepy Sloth', description: 'Slow down like a sleepy sloth. Gentle stretches.', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 10, duration: '3 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
-      { id: 40, name: 'Hibernating Bear', description: 'Lie down, close eyes, take 10 deep breaths.', equipment: ['yoga_mat', 'blankets'], minAge: 3, maxAge: 12, points: 10, duration: '3 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
-      { id: 41, name: 'Butterfly Wings', description: 'Sit in butterfly pose and gently flap.', equipment: ['yoga_mat'], minAge: 3, maxAge: 12, points: 10, duration: '2 min', difficulty: 'Easy', category: 'cooldown', tags: ['flexibility'] },
-      { id: 42, name: 'Ninja Warrior Course', description: 'The ultimate challenge! Mega obstacle course!', equipment: ['plyo_6', 'plyo_12', 'balance_beam', 'cones', 'stepping_stones'], minAge: 6, maxAge: 12, points: 50, duration: '8 min', difficulty: 'Hard', category: 'obstacle', tags: ['jump', 'balance', 'strength', 'cardio'] },
-      { id: 43, name: 'Bosu Balance Master', description: 'Stand on Bosu and catch balls thrown to you!', equipment: ['bosu', 'foam_balls'], minAge: 6, maxAge: 12, points: 35, duration: '4 min', difficulty: 'Hard', category: 'balance', tags: ['balance', 'coordination', 'team'] },
-      { id: 44, name: 'Plyo Power Challenge', description: 'Jump up all three plyo boxes in a row!', equipment: ['plyo_6', 'plyo_12', 'plyo_18'], minAge: 7, maxAge: 12, points: 40, duration: '3 min', difficulty: 'Hard', category: 'jump', tags: ['jump', 'strength', 'cardio'] },
-      { id: 45, name: 'Barre Workout', description: 'Hold the barre for leg lifts and pliés!', equipment: ['barre'], minAge: 5, maxAge: 12, points: 25, duration: '5 min', difficulty: 'Medium', category: 'strength', tags: ['strength', 'balance', 'flexibility'] },
+      // ---------- JUMP ----------
+      X(1, 'T-Rex Stomp Jumps', 'jump', 'Medium', 20, 60, [], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Squat down low, then explode up and land with a big soft T-Rex stomp. Knees stay over toes on landing.', ['8 stomp jumps', '12 stomp jumps + 3-sec squat hold every 4', '20 stomp jumps — max height every time']),
+      X(2, 'Frog Pond Hop', 'jump', 'Medium', 20, 90, ['stepping_stones'], ['calves', 'quads', 'glutes'], ['balance', 'proprio', 'coordination'], ['blast'], 'Hop stone to stone without touching the "water". Stick each landing for one second.', ['2 crossings, two-foot hops', '3 crossings, single-leg hops on the last 3 stones', '4 crossings all single-leg, switch legs each lap']),
+      X(3, 'Kangaroo Box Jumps', 'jump', 'Hard', 25, 90, ['plyo_6'], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Jump up onto the box, land softly in a squat, stand tall, step down (never jump down).', ['6" box · 6 jumps', '12" box · 8 jumps', '18" box · 10 jumps (or 12" with a tuck)']),
+      X(4, 'Grasshopper Challenge', 'agility', 'Medium', 20, 45, ['cones'], ['calves', 'quads'], ['agility', 'coordination'], ['quick', 'blast'], 'Side-to-side hops over a cone. Count your hops and try to beat your record.', ['20 seconds', '30 seconds', '45 seconds — beat your best']),
+      X(44, 'Plyo Power Staircase', 'jump', 'Hard', 40, 120, ['plyo_6', 'plyo_12', 'plyo_18'], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Jump up the boxes from smallest to biggest, stepping down between each. Full reset before each jump.', ['6" and 12" only · 3 rounds', 'All 3 boxes · 3 rounds', 'All 3 boxes · 5 rounds'], { minAge: 11 }),
+      X(56, 'Jump Squat Rockets', 'jump', 'Hard', 25, 60, [], ['quads', 'glutes', 'calves'], ['proprio'], ['blast'], 'Squat until thighs are near parallel, then launch straight up. Land soft and go right into the next one.', ['8 regular squats + 4 jump squats', '12 jump squats', '20 jump squats']),
+      X(61, 'Tuck Jump Launch', 'jump', 'Hard', 25, 45, [], ['quads', 'core', 'calves'], ['proprio'], ['blast'], 'Jump high and pull your knees to your chest. Land quietly on the balls of your feet.', ['5 tuck jumps (rest as needed)', '8 tuck jumps', '12 tuck jumps in a row']),
+      X(62, 'Broad Jump Distance', 'jump', 'Medium', 20, 90, ['cones'], ['glutes', 'hamstrings', 'quads'], ['proprio', 'coordination'], ['blast'], 'Swing your arms and jump forward as far as you can. Mark your best landing with a cone.', ['5 jumps, mark your best', '8 jumps, beat your mark', '10 jumps + 3 bounds in a row']),
+
+      // ---------- AGILITY / LADDER ----------
+      X(63, 'Speed Skater Hops', 'agility', 'Medium', 20, 60, [], ['glutes', 'quads', 'calves'], ['balance', 'agility'], ['quick', 'blast'], 'Leap sideways from one foot to the other like a speed skater. Hold each landing for a beat.', ['10 each side', '15 each side', '20 each side with a 1-sec freeze on landing']),
+      X(68, 'Ladder Quick Feet', 'agility', 'Medium', 20, 60, ['agility_ladder'], ['calves', 'quads', 'heart'], ['agility', 'coordination'], ['quick'], 'Run through the ladder with both feet touching down in every box. Stay on the balls of your feet.', ['4 passes, steady', '6 passes, faster', '8 passes, timed — beat your best']),
+      X(69, 'Ladder In-In-Out-Out', 'agility', 'Medium', 20, 60, ['agility_ladder'], ['calves', 'quads'], ['agility', 'coordination', 'rhythm'], ['quick'], 'Step in-in to the box, out-out to the sides, then move to the next box. Say the rhythm out loud!', ['3 passes', '5 passes', '6 passes + 2 going backward']),
+      X(70, 'Ladder Icky Shuffle', 'agility', 'Hard', 25, 75, ['agility_ladder'], ['calves', 'quads', 'glutes'], ['agility', 'coordination', 'rhythm'], ['quick'], 'In-in-out pattern that zig-zags across the ladder (in, in, out to the side; repeat leading with the other foot).', ['3 slow passes — learn it', '5 passes', '8 passes at full speed']),
+      X(71, 'Ladder Hopscotch', 'agility', 'Medium', 20, 60, ['agility_ladder'], ['calves', 'quads'], ['balance', 'agility', 'proprio'], ['quick', 'blast'], 'Two feet in a box, one foot out, alternating down the ladder like hopscotch.', ['3 passes two-footed', '5 passes hopscotch', '6 passes single-leg (3 each leg)']),
+      X(72, 'Ladder Lateral Shuffle', 'agility', 'Medium', 20, 60, ['agility_ladder'], ['glutes', 'quads', 'calves'], ['agility', 'coordination'], ['quick'], 'Face sideways and shuffle through, both feet hitting every box. Low athletic stance.', ['4 passes (2 each way)', '6 passes', '8 passes, as fast as possible']),
+
+      // ---------- CARDIO ----------
+      X(5, 'Dinosaur Escape Shuttle', 'cardio', 'Medium', 25, 90, ['cones'], ['quads', 'hamstrings', 'calves', 'heart'], ['agility'], ['quick', 'engine'], 'A meteor is coming! Sprint between two cones ~15 ft apart, touching the floor at each end.', ['4 laps', '6 laps', '8 laps, timed — beat your best'], { tags: ['team'] }),
+      X(54, 'Mountain Climbers', 'cardio', 'Hard', 25, 45, [], ['core', 'shoulders', 'quads', 'heart'], ['coordination'], ['engine', 'quick'], 'From a high plank, drive knees to chest one at a time, fast. Keep hips level.', ['20 seconds', '30 seconds', '45 seconds — fast!']),
+      X(55, 'Burpee Blast', 'cardio', 'Hard', 30, 75, [], ['chest', 'quads', 'core', 'heart'], ['coordination'], ['blast', 'engine'], 'Squat, hands down, jump feet back to plank, jump feet in, jump up and reach for the sky.', ['6 burpees (step back instead of jumping)', '10 burpees', '15 burpees with a tuck jump']),
+      X(59, 'Hallway Sprints', 'cardio', 'Hard', 25, 90, [], ['quads', 'hamstrings', 'calves', 'heart'], ['agility'], ['blast', 'engine'], 'Sprint the longest clear stretch you have, touch the floor, walk back. (No space? Sprint in place 10 seconds.)', ['5 sprints', '8 sprints', '10 sprints, touch the floor at both ends']),
+      X(60, 'High-Knee Countdown', 'cardio', 'Medium', 20, 120, [], ['quads', 'core', 'heart'], ['coordination'], ['engine'], 'Run in place driving your knees up to hip height. Rest between rounds.', ['3 rounds: 20 sec on / 20 sec off', '4 rounds: 30 on / 20 off', '6 rounds: 30 on / 15 off']),
+      X(64, 'Jumping Jack Ladder', 'cardio', 'Easy', 15, 60, [], ['calves', 'shoulders', 'heart'], ['coordination', 'rhythm'], ['engine'], 'Classic jumping jacks — arms all the way up, feet wide.', ['30 jacks', '50 jacks', '75 jacks (or 3 × 25 seal jacks)']),
+      X(21, 'Disco Lights Workout', 'cardio', 'Medium', 30, 240, ['spotify', 'lights'], ['quads', 'heart'], ['rhythm', 'reaction'], ['engine'], 'Lights on = fast moves (jacks, high knees). Lights off = slow-mo squats. Someone runs the switch!', ['3 minutes', '4 minutes', '5 minutes, add burpees on the drop'], { tags: ['team'] }),
+
+      // ---------- CORE ----------
+      X(46, 'Rocket Sit-Ups', 'core', 'Medium', 20, 60, [], ['core'], [], ['strength'], 'Lie back with knees bent, feet anchored. Curl all the way up, lower slowly.', ['10 sit-ups, feet tucked under a couch', '15 sit-ups', '25 sit-ups, arms crossed on chest']),
+      X(48, 'Plank Freeze', 'core', 'Medium', 20, 60, [], ['core', 'shoulders', 'glutes'], ['proprio'], ['hold'], 'Forearms down, body in one straight line from head to heels. Squeeze everything.', ['20 sec (on knees is OK)', '40 sec', '60 sec + 10 shoulder taps from high plank']),
+      X(49, 'Side Plank Shield', 'core', 'Medium', 20, 75, [], ['core', 'shoulders', 'glutes'], ['balance'], ['hold'], 'On one forearm, stack your feet and lift your hips. Keep a straight line. Switch sides.', ['15 sec each side, knees down', '25 sec each side', '40 sec each side, top leg lifted']),
+      X(50, 'Hollow Rocket Hold', 'core', 'Hard', 25, 60, [], ['core'], ['proprio'], ['hold'], 'On your back, lower back pressed into the floor, arms and legs lifted like a banana.', ['Tuck hold, 15 sec', 'Hollow hold, 25 sec', 'Hollow hold 40 sec + 10 rocks']),
+      X(52, 'V-Up Launch', 'core', 'Hard', 25, 60, [], ['core'], ['coordination'], ['strength'], 'From lying flat, lift arms and legs at the same time to make a V, touch your shins, lower slowly.', ['8 tuck-ups', '10 V-ups', '15 V-ups']),
+      X(53, 'Bicycle Crunch Race', 'core', 'Medium', 20, 60, [], ['core'], ['coordination'], ['strength', 'engine'], 'Elbow to opposite knee while the other leg extends. Slow and controlled beats fast and sloppy.', ['20 total', '30 total', '40 total, 2-sec twist each']),
+      X(51, 'Superman Flyers', 'core', 'Easy', 15, 60, ['yoga_mat'], ['back', 'glutes', 'shoulders'], [], ['strength', 'hold'], 'Lie on your belly and lift arms, chest and legs off the floor like Superman flying. Hold, lower.', ['8 lifts, 2-sec hold', '12 lifts, 3-sec hold', '15 lifts + 20-sec hold at the end']),
+
+      // ---------- STRENGTH (UPPER / LEGS) ----------
+      X(47, 'Power Push-Ups', 'strength', 'Hard', 25, 60, [], ['chest', 'triceps', 'shoulders', 'core'], [], ['strength'], 'Hands just outside shoulders, body straight, lower until your chest nearly touches, press up.', ['8 push-ups on knees or hands on a box/couch', '10 full push-ups', '20 full push-ups, chest to a fist']),
+      X(15, 'Caterpillar Push-Ups', 'strength', 'Medium', 25, 75, ['yoga_mat'], ['chest', 'triceps', 'core', 'hamstrings'], ['flexibility'], ['strength'], 'Fold forward, walk your hands out to a plank, do a push-up, walk back, stand up.', ['5 walk-outs, push-up on knees', '6 walk-outs with a full push-up', '8 walk-outs with 2 push-ups each']),
+      X(12, 'Bear Crawl Safari', 'strength', 'Medium', 20, 75, ['cones'], ['shoulders', 'core', 'quads', 'triceps'], ['coordination'], ['strength', 'engine'], 'Hands and feet on the floor, knees hovering, crawl around the cones.', ['2 lengths of the room', '3 lengths + 10-sec bear hold', '4 lengths, knees 1 inch off the floor, backward on the return']),
+      X(14, 'Crab Walk Race', 'strength', 'Medium', 20, 60, [], ['triceps', 'shoulders', 'glutes', 'core'], ['coordination'], ['strength'], 'Belly up, hips high, walk on hands and feet. Race your family!', ['2 lengths', '3 lengths + 10 crab dips', '4 lengths backward + 15 crab dips'], { tags: ['team'] }),
+      X(13, 'Gorilla Curls', 'strength', 'Medium', 20, 60, ['weights'], ['biceps'], [], ['strength'], 'Elbows pinned to your sides, curl the weights up, lower for 3 seconds. Then chest-pound like a gorilla!', ['10 curls (1–3 lb or water bottles)', '12 curls + 8 hammer curls', '15 curls + 12 hammer curls, slow lowers']),
+      X(16, 'Ant Lifts', 'strength', 'Medium', 20, 60, ['weights'], ['shoulders', 'triceps'], [], ['strength'], 'Ants lift 50× their weight! Press the weights from shoulders straight overhead.', ['10 presses', '12 presses', '15 presses + 10 lateral raises']),
+      X(65, 'Box Dips', 'strength', 'Medium', 20, 60, ['plyo_12'], ['triceps', 'shoulders'], [], ['strength'], 'Hands on the edge of the box behind you, bend elbows straight back to lower, press up.', ['8 dips, knees bent', '12 dips', '15 dips, legs straight']),
+      X(17, 'Inchworm Walk', 'strength', 'Easy', 15, 60, ['yoga_mat'], ['hamstrings', 'shoulders', 'core'], ['flexibility'], ['strength', 'stretch'], 'Walk your hands out to plank, then tiny-step your feet up to your hands. Travel across the mat.', ['2 trips across', '3 trips', '4 trips, shoulder tap at each plank']),
+      X(57, 'Knight Lunges', 'strength', 'Medium', 20, 75, [], ['quads', 'glutes', 'hamstrings'], ['balance'], ['strength'], 'Step forward and lower until both knees make 90°. Back knee hovers just above the floor.', ['8 each leg', '12 each leg', '15 each leg holding weights, or 10 jumping lunges each']),
+      X(58, 'Wall Sit Force Field', 'strength', 'Medium', 20, 60, [], ['quads', 'glutes'], [], ['hold'], 'Back flat on the wall, slide down until knees are at 90°. Hold the force field!', ['20 seconds', '40 seconds', '60 seconds']),
+      X(66, 'Glute Bridge Lift', 'strength', 'Easy', 15, 60, ['yoga_mat'], ['glutes', 'hamstrings', 'core'], [], ['strength'], 'On your back, knees bent, push through your heels to lift your hips high. Squeeze at the top.', ['12 bridges', '15 bridges, 3-sec hold', '12 single-leg bridges each side']),
+      X(67, 'Calf Raise Tower', 'strength', 'Easy', 15, 60, [], ['calves'], ['balance'], ['strength'], 'Rise up onto your toes as high as you can, lower slowly. Hold a wall or barre for balance.', ['15 raises', '25 raises', '20 single-leg raises each side']),
+      X(25, 'Mountain Climber Trail', 'strength', 'Medium', 30, 90, ['plyo_12'], ['quads', 'glutes'], ['balance'], ['strength', 'engine'], 'Step up onto the box, drive the other knee high, step down. Climb the mountain!', ['8 step-ups each leg', '12 each leg', '12 each leg holding light weights']),
+      X(45, 'Barre Workout', 'strength', 'Medium', 25, 120, ['barre'], ['glutes', 'quads', 'calves'], ['balance', 'proprio'], ['strength', 'hold'], 'Holding the barre: pliés, leg lifts to the front/side/back, then rise onto toes.', ['8 of each move', '12 of each move', '15 of each + 20-sec plié hold']),
+
+      // ---------- BALANCE ----------
+      X(6, 'Flamingo Stand', 'balance', 'Easy', 15, 60, [], ['calves', 'core'], ['balance', 'proprio'], ['hold'], 'Stand on one leg with the other foot tucked up. Stay steady!', ['30 sec each leg', '30 sec each leg, arms crossed', '30 sec each leg, eyes closed']),
+      X(7, 'Tightrope Walker', 'balance', 'Easy', 15, 60, ['balance_beam'], ['calves', 'core'], ['balance', 'proprio', 'coordination'], ['hold'], 'Walk heel-to-toe across the beam like a circus star.', ['Forward & back', 'Backward, then sideways', 'Eyes on a far target + a squat in the middle']),
+      X(8, 'Surfing Dino', 'balance', 'Medium', 25, 75, ['bosu'], ['quads', 'core'], ['balance', 'proprio'], ['hold'], 'Stand on the Bosu (dome up) like you’re riding a wave.', ['Stand 30 sec', 'Stand 45 sec + 5 mini squats', '60 sec + 10 squats, then 10 sec on one leg']),
+      X(9, 'Eagle Pose Challenge', 'balance', 'Medium', 20, 75, ['yoga_mat'], ['quads', 'glutes', 'shoulders'], ['balance', 'flexibility'], ['hold', 'stretch'], 'Wrap one leg around the other and one arm around the other, sit low.', ['20 sec each side', '30 sec each side, sink lower', '45 sec each side, then fold forward']),
+      X(10, 'Lava River Crossing', 'balance', 'Medium', 25, 90, ['stepping_stones'], ['calves', 'quads'], ['balance', 'proprio'], ['hold'], 'The floor is lava — cross using only the stones, pausing on each one.', ['1 lap, stones a big step apart', '2 laps, stones spread farther', '3 laps, pause 3 sec on one leg at every stone']),
+      X(11, 'Stork Walk', 'balance', 'Hard', 30, 90, ['balance_beam', 'yoga_blocks'], ['core', 'calves'], ['balance', 'proprio'], ['hold'], 'Walk the beam with a yoga block balanced on your head.', ['Forward once', 'Forward and back', 'Forward, back, + 3 lunges on the beam']),
+      X(43, 'Bosu Balance Catch', 'balance', 'Hard', 35, 90, ['bosu', 'foam_balls'], ['core', 'quads'], ['balance', 'handeye', 'reaction'], ['hold'], 'Stand on the Bosu while a partner tosses foam balls to you.', ['10 catches, two hands', '15 catches, tosses to the side', '20 catches, one-hand tosses + a squat between'], { tags: ['team'] }),
+      X(81, 'Clock Reach', 'balance', 'Medium', 20, 75, [], ['glutes', 'quads', 'core'], ['balance', 'proprio'], ['hold'], 'On one leg, reach your other foot to 12, 3 and 6 o’clock on an imaginary clock, then switch legs.', ['3 reaches each leg', '5 reaches each leg', '8 each leg, eyes closed between reaches']),
+      X(82, 'Pillow Balance', 'balance', 'Medium', 20, 60, ['blankets'], ['calves', 'core'], ['balance', 'proprio'], ['hold'], 'Stand on one leg on a folded blanket or pillow — wobbly ground makes your ankles smarter.', ['20 sec each leg', '30 sec each leg + 5 mini squats', '45 sec each leg, toss a ball hand to hand']),
+
+      // ---------- DANCE ----------
+      X(18, 'Dino Dance Party', 'dance', 'Easy', 25, 180, ['spotify'], ['quads', 'heart'], ['rhythm', 'coordination'], ['engine'], 'Dance like different dinosaurs to the music — switch dino when someone calls it.', ['1 song, switch every 30 sec', '2 songs', '2 songs nonstop — no standing still'], { tags: ['team'] }),
+      X(19, 'Freeze Dance', 'dance', 'Easy', 25, 180, ['spotify'], ['quads', 'core', 'heart'], ['rhythm', 'reaction', 'balance'], ['engine', 'hold'], 'Dance when the music plays, freeze when it stops. Wobble = 5 jumping jacks!', ['Freeze in any pose', 'Freeze in a wall-sit squat', 'Freeze in a plank or one-leg balance'], { tags: ['team'] }),
+      X(20, 'Ballet Pliés & Relevés', 'dance', 'Easy', 20, 90, ['barre'], ['quads', 'glutes', 'calves'], ['balance', 'proprio'], ['strength'], 'Hold the barre: deep plié (knees out over toes), then rise onto your toes.', ['10 pliés', '15 pliés + 10 relevés', '20 pliés with 3-sec hold + 20 relevés']),
+      X(79, 'Choreo Challenge', 'dance', 'Medium', 25, 240, ['spotify'], ['quads', 'heart'], ['rhythm', 'coordination'], ['engine'], 'Learn a short dance (make one up or copy a video) one 8-count at a time, then perform it.', ['Learn 1 eight-count', 'Learn 2 eight-counts', 'Learn 4 eight-counts and perform it full-out'], { tags: ['team'] }),
+      X(80, 'Mirror Moves', 'dance', 'Easy', 20, 120, ['spotify'], ['shoulders', 'quads'], ['coordination', 'reaction', 'rhythm'], ['engine'], 'Face a partner. The leader dances slowly, the mirror copies exactly. Switch leaders each minute.', ['1 minute each', '2 minutes each, faster', '2 minutes each, add jumps and turns'], { tags: ['team'] }),
+
+      // ---------- OBSTACLE ----------
+      X(22, 'Jungle Expedition', 'obstacle', 'Medium', 40, 180, ['plyo_6', 'cones', 'balance_beam'], ['quads', 'glutes', 'heart'], ['balance', 'agility'], ['engine', 'blast'], 'Jump the box, weave the cones, cross the beam — that’s one round.', ['2 rounds', '3 rounds', '4 rounds, timed']),
+      X(23, 'Dinosaur Gauntlet', 'obstacle', 'Medium', 35, 180, ['blankets', 'plyo_6', 'cones'], ['shoulders', 'quads', 'heart'], ['agility', 'coordination'], ['engine'], 'Army-crawl under a blanket tunnel, jump the box, sprint the cones.', ['2 rounds', '3 rounds', '4 rounds, timed']),
+      X(24, 'Bug Course', 'obstacle', 'Easy', 30, 150, ['cones', 'stepping_stones'], ['quads', 'calves', 'heart'], ['coordination', 'agility'], ['engine'], 'Move like a different bug at each station: ant crawl, grasshopper hop, beetle roll.', ['2 rounds', '3 rounds', '4 rounds, timed']),
+      X(42, 'Ninja Warrior Course', 'obstacle', 'Hard', 50, 240, ['plyo_6', 'plyo_12', 'balance_beam', 'cones', 'stepping_stones'], ['quads', 'glutes', 'core', 'heart'], ['balance', 'agility', 'proprio'], ['blast', 'engine'], 'The ultimate challenge! Stones → beam → box jumps → cone sprint → 5 push-ups.', ['2 rounds', '3 rounds', '4 rounds, timed — beat your best']),
+
+      // ---------- TARGET / HAND-EYE ----------
+      X(26, 'Angry Birds', 'target', 'Easy', 20, 120, ['foam_balls', 'yoga_blocks'], ['shoulders'], ['aim', 'handeye'], ['blast'], 'Stack yoga blocks into a tower and knock it down with foam balls.', ['10 throws from 8 ft', '10 throws from 12 ft', '15 throws from 15 ft, half with your other hand']),
+      X(27, 'Cone Bowling', 'target', 'Easy', 20, 120, ['cones', 'foam_balls'], ['shoulders'], ['aim', 'handeye'], ['skill'], 'Set cones like bowling pins and roll the ball to knock them down.', ['Bowl from 8 ft', 'Bowl from 12 ft', '15 ft — fewest rolls wins']),
+      X(28, 'Pterodactyl Toss', 'target', 'Medium', 25, 120, ['foam_balls'], ['shoulders', 'core'], ['handeye', 'reaction'], ['skill'], 'Partner throw and catch. Every drop = 3 squats!', ['20 catches, 6 ft apart', '20 catches, 10 ft, one hand', '30 catches, 12 ft, clap before catching'], { tags: ['team'] }),
+      X(73, 'Sock Ball Basket Shots', 'target', 'Easy', 15, 90, [], ['shoulders'], ['aim', 'handeye'], ['skill'], 'Roll up socks into balls and shoot them into a laundry basket.', ['10 shots from 6 ft', '10 shots from 10 ft', '15 shots from 12 ft, alternating hands']),
+      X(74, 'Wall Ball Catch', 'target', 'Medium', 20, 90, ['foam_balls'], ['shoulders'], ['handeye', 'reaction'], ['skill'], 'Throw the ball at a wall and catch it on the rebound.', ['20 two-hand catches', '20 one-hand catches', '30 catches, alternate hands + clap']),
+      X(75, 'Juggling Starter', 'target', 'Medium', 20, 120, ['foam_balls'], ['shoulders'], ['handeye', 'coordination', 'rhythm'], ['skill'], 'Learn to juggle! Toss in an arc at eye height.', ['1 ball, 30 tosses hand to hand', '2 balls, 20 exchanges', '3-ball cascade — go for 10 catches']),
+      X(76, 'Reaction Drop', 'target', 'Easy', 15, 90, ['foam_balls'], [], ['reaction', 'handeye'], ['quick'], 'Partner holds a ball at shoulder height and drops it without warning — catch it before the second bounce.', ['10 drops, before 2nd bounce', '10 drops, before 1st bounce', '15 drops, start with hands on your knees'], { tags: ['team'] }),
+      X(77, 'Cone Target Toss', 'target', 'Medium', 20, 90, ['cones', 'foam_balls'], ['shoulders'], ['aim'], ['skill'], 'Set cones at 3 distances (1, 2 and 3 points). Underhand toss to land closest to a cone.', ['10 tosses', '10 tosses, score 15+', '15 tosses, score 25+']),
+      X(78, 'Balloon Keep-Up', 'target', 'Easy', 15, 60, [], ['shoulders', 'calves'], ['handeye', 'coordination', 'reaction'], ['quick'], 'Keep a balloon (or soft ball) in the air without it touching the floor.', ['30 sec using hands', '45 sec, alternate hands', '60 sec using only hands, knees and head']),
+
+      // ---------- YOGA / STRETCH ----------
+      X(29, 'Zoo Yoga', 'yoga', 'Easy', 20, 180, ['yoga_mat'], ['back', 'hamstrings'], ['flexibility', 'balance'], ['stretch', 'hold'], 'Animal poses: downward dog, cobra, cat-cow, frog, flamingo.', ['5 poses, 15 sec each', '6 poses, 20 sec each', '8 poses, 30 sec each, flow between them']),
+      X(30, 'Dinosaur Stretches', 'yoga', 'Easy', 15, 150, ['yoga_mat'], ['shoulders', 'hamstrings', 'back'], ['flexibility'], ['stretch'], 'Long-neck reach to the ceiling, T-Rex arm circles, tail-swish side bends, toe touch.', ['20 sec each stretch', '30 sec each', '30 sec each + deeper toe touch']),
+      X(31, 'Pretzel Twist', 'yoga', 'Medium', 20, 120, ['yoga_mat', 'yoga_blocks'], ['back', 'glutes', 'core'], ['flexibility'], ['stretch'], 'Seated twists: cross one leg over, hug the knee, look behind you. Use a block to sit tall.', ['20 sec each side', '30 sec each side', '45 sec each side + reach for the opposite foot']),
+      X(32, 'Partner Yoga Safari', 'yoga', 'Medium', 30, 180, ['yoga_mat'], ['core', 'hamstrings'], ['balance', 'flexibility', 'coordination'], ['stretch', 'hold'], 'Partner poses: back-to-back chair, double tree, seesaw stretch.', ['3 poses, 15 sec', '4 poses, 20 sec', '5 poses, 30 sec'], { tags: ['team'] }),
+      X(84, 'World’s Greatest Stretch', 'yoga', 'Medium', 15, 90, ['yoga_mat'], ['hamstrings', 'glutes', 'back'], ['flexibility'], ['stretch'], 'Deep lunge, same-side elbow toward the floor, rotate and reach to the ceiling, straighten front leg.', ['3 each side', '4 each side', '5 each side, hold 3 sec in each position']),
+      X(83, 'Hamstring & Hip Flow', 'yoga', 'Easy', 15, 120, ['yoga_mat'], ['hamstrings', 'glutes'], ['flexibility'], ['stretch'], 'Seated forward fold, butterfly, figure-4 stretch, lying hamstring stretch.', ['20 sec each', '30 sec each', '45 sec each']),
+
+      // ---------- GAME ----------
+      X(33, 'Hot Lava Floor', 'game', 'Medium', 30, 180, ['stepping_stones', 'balance_beam', 'plyo_6'], ['quads', 'calves', 'heart'], ['balance', 'agility'], ['blast'], 'The floor is lava! Get around the room using only equipment.', ['Free play, 3 min', 'Timed lap, no touching the floor', 'Timed lap carrying a ball, 3 laps'], { tags: ['team'] }),
+      X(34, 'Animal Charades Workout', 'game', 'Easy', 25, 240, [], ['quads', 'shoulders', 'heart'], ['coordination'], ['engine'], 'Act out an animal with a matching exercise (frog = jump squats, bear = crawls). Others guess!', ['5 animals, 8 reps each', '8 animals, 10 reps each', '10 animals, 12 reps each, no breaks'], { tags: ['team'] }),
+      X(35, 'Simon Says Speed Round', 'game', 'Easy', 20, 180, [], ['quads', 'core', 'heart'], ['reaction'], ['quick'], 'Simon Says with exercise commands — get faster and trickier each round.', ['2 minutes', '3 minutes, faster commands', '4 minutes with trick commands'], { tags: ['team'] }),
+      X(36, 'Musical Stepping Stones', 'game', 'Easy', 25, 180, ['stepping_stones', 'spotify'], ['calves', 'quads'], ['balance', 'reaction'], ['hold'], 'Walk the stones while music plays; freeze when it stops. Remove a stone each round.', ['3 rounds', '5 rounds', '5 rounds, freeze on one leg'], { tags: ['team'] }),
+      X(37, 'Blanket Fort Circuit', 'game', 'Easy', 25, 240, ['blankets'], ['shoulders', 'core', 'quads'], ['coordination'], ['strength', 'engine'], 'Build a fort; each time you crawl through, do a challenge inside (10 crunches, 5 push-ups…).', ['3 trips', '5 trips', '8 trips'], { tags: ['team'] }),
+      X(38, 'Treasure Hunt Workout', 'game', 'Easy', 30, 300, ['foam_balls'], ['quads', 'heart'], ['agility'], ['engine'], 'Hide the balls. Every ball found = an exercise before you hunt again.', ['5 balls, 10 jumping jacks each', '8 balls, 10 squats each', '10 balls, 5 burpees each'], { tags: ['team'] }),
+
+      // ---------- COOLDOWN ----------
+      X(39, 'Sleepy Sloth', 'cooldown', 'Easy', 10, 90, ['yoga_mat'], ['back', 'shoulders'], ['flexibility'], ['stretch'], 'Slow-motion stretches: reach up, fold down, hang like a sloth.', ['20 sec each', '30 sec each', '45 sec each']),
+      X(40, 'Hibernating Bear Breaths', 'cooldown', 'Easy', 10, 90, ['yoga_mat'], [], [], ['stretch'], 'Lie down, close your eyes, belly breathing to slow your heart rate down.', ['10 slow breaths', '15 slow breaths', '20 box breaths (in 4, hold 4, out 4, hold 4)']),
+      X(41, 'Butterfly Wings', 'cooldown', 'Easy', 10, 60, ['yoga_mat'], ['glutes'], ['flexibility'], ['stretch'], 'Sit with soles of feet together, gently flap your knees, then fold forward.', ['20 sec flap + 20 sec fold', '30 + 30 sec', '45 + 45 sec']),
+      X(85, 'Cobra to Child’s Pose', 'cooldown', 'Easy', 10, 90, ['yoga_mat'], ['back', 'core'], ['flexibility'], ['stretch'], 'Lift your chest into cobra, then sit back into child’s pose. Repeat slowly.', ['4 rounds', '6 rounds', '8 rounds, 5 breaths in each']),
+      X(86, 'Quad & Calf Stretch', 'cooldown', 'Easy', 10, 90, [], ['quads', 'calves'], ['flexibility', 'balance'], ['stretch'], 'Standing quad pull (hold a wall), then a wall calf stretch each leg.', ['20 sec each', '30 sec each', '45 sec each, no wall for the quad pull']),
     ];
 
+    const CATEGORIES = [
+      { id: 'all', label: '🌟 ALL' }, { id: 'jump', label: '🦘 Jump' }, { id: 'agility', label: '🪜 Agility' }, { id: 'cardio', label: '❤️ Cardio' },
+      { id: 'core', label: '🧱 Core' }, { id: 'strength', label: '💪 Strength' }, { id: 'balance', label: '⚖️ Balance' }, { id: 'dance', label: '💃 Dance' },
+      { id: 'obstacle', label: '🥷 Obstacle' }, { id: 'target', label: '🎯 Aim & Catch' }, { id: 'yoga', label: '🧘 Yoga' }, { id: 'game', label: '🎲 Games' }, { id: 'cooldown', label: '😴 Cooldown' },
+    ];
+
+    // ===== COURSES =====
+    // pool = exercises a course draws from. 'slots' (Healthy Mix) = pick one from each list in order.
+    const COURSES = [
+      { id: 'core_upper', name: 'Core & Upper Body', emoji: '💪', color: '#ff8000', count: 6, description: 'Abs, back, chest, shoulders and arms.', pool: [46, 47, 48, 49, 50, 51, 52, 53, 15, 12, 14, 13, 16, 65] },
+      { id: 'legs', name: 'Leg Day', emoji: '🦵', color: '#00ff80', count: 6, description: 'Quads, glutes, hamstrings and calves.', pool: [1, 56, 57, 58, 66, 67, 25, 61, 62, 3, 45, 63] },
+      { id: 'cardio', name: 'Cardio Blast', emoji: '❤️', color: '#ff4060', count: 6, description: 'Get the heart pumping.', pool: [5, 54, 55, 59, 60, 64, 63, 68, 4, 1] },
+      { id: 'dance', name: 'Dance Party', emoji: '💃', color: '#ff00ff', count: 4, description: 'Rhythm, moves and music.', pool: [18, 19, 79, 80, 20, 21] },
+      { id: 'balance', name: 'Balance Lab', emoji: '⚖️', color: '#40c0ff', count: 6, description: 'Steady feet and body awareness.', pool: [6, 7, 8, 9, 10, 11, 43, 81, 82, 2] },
+      { id: 'aim', name: 'Aim & Throw', emoji: '🎯', color: '#ffff00', count: 4, description: 'Accuracy and throwing power.', pool: [26, 27, 73, 77, 28] },
+      { id: 'handeye', name: 'Hand-Eye Coordination', emoji: '👀', color: '#00ffff', count: 5, description: 'Catching, juggling and quick hands.', pool: [28, 43, 74, 75, 76, 78, 73] },
+      { id: 'agility', name: 'Ladder & Agility', emoji: '🪜', color: '#a0ff00', count: 6, description: 'Fast feet and direction changes.', pool: [68, 69, 70, 71, 72, 4, 63, 5] },
+      { id: 'stretch', name: 'Stretch & Recover', emoji: '🌀', color: '#c080ff', count: 6, description: 'Flexibility and calm-down.', pool: [29, 30, 31, 84, 83, 39, 40, 41, 85, 86] },
+      { id: 'mix', name: 'Healthy Mix', emoji: '🌈', color: '#ffffff', count: 7, description: 'Warm-up, strength, cardio, balance and a cooldown.',
+        slots: [[64, 60, 18, 68], [47, 46, 48, 15, 12], [56, 57, 58, 1, 66], [5, 54, 55, 59, 63], [6, 8, 81, 7, 82], [74, 28, 73, 78], [84, 83, 30, 39, 85]] },
+    ];
     const Confetti = ({ active }) => {
       if (!active) return null;
       const pieces = Array.from({ length: 60 }, (_, i) => ({ id: i, left: Math.random() * 100, delay: Math.random() * 2, color: ['#00ffff', '#ff00ff', '#ffff00', '#00ff00', '#ff0080'][Math.floor(Math.random() * 5)], size: Math.random() * 12 + 6 }));
-      return (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1001, overflow: 'hidden' }}>{pieces.map(p => (<div key={p.id} style={{ position: 'absolute', left: `${p.left}%`, top: '-20px', width: `${p.size}px`, height: `${p.size}px`, backgroundColor: p.color, borderRadius: p.id % 2 === 0 ? '50%' : '0', animation: `confettiFall 3s ease-out ${p.delay}s forwards`, boxShadow: `0 0 10px ${p.color}` }} />))}</div>);
+      return (<div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1006, overflow: 'hidden' }}>{pieces.map(p => (<div key={p.id} style={{ position: 'absolute', left: `${p.left}%`, top: '-20px', width: `${p.size}px`, height: `${p.size}px`, backgroundColor: p.color, borderRadius: p.id % 2 === 0 ? '50%' : '0', animation: `confettiFall 3s ease-out ${p.delay}s forwards`, boxShadow: `0 0 10px ${p.color}` }} />))}</div>);
     };
 
     const PointsPopup = ({ points, participantName, onClose }) => {
       useEffect(() => { const t = setTimeout(onClose, 1500); return () => clearTimeout(t); }, [onClose]);
-      return (<div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,40,0.95) 100%)', border: '3px solid #00ffff', borderRadius: '20px', padding: '40px 60px', textAlign: 'center', animation: 'popIn 0.3s ease-out', zIndex: 1002, boxShadow: '0 0 40px #00ffff' }}><div style={{ fontSize: '56px', marginBottom: '12px', animation: 'float 1s ease-in-out infinite' }}>🎉</div><div style={{ fontSize: '20px', marginBottom: '8px', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{participantName}</div><div style={{ fontSize: '42px', fontWeight: 'bold', color: '#ffff00', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ffff00' }}>+{points} XP!</div></div>);
+      return (<div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,40,0.95) 100%)', border: '3px solid #00ffff', borderRadius: '20px', padding: '40px 60px', textAlign: 'center', animation: 'popIn 0.3s ease-out', zIndex: 1005, boxShadow: '0 0 40px #00ffff' }}><div style={{ fontSize: '56px', marginBottom: '12px', animation: 'float 1s ease-in-out infinite' }}>🎉</div><div style={{ fontSize: '20px', marginBottom: '8px', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{participantName}</div><div style={{ fontSize: '42px', fontWeight: 'bold', color: '#ffff00', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ffff00' }}>+{points} XP!</div></div>);
     };
 
     const BadgePopup = ({ badge, onClose }) => {
       if (!badge) return null;
-      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1002 }} onClick={onClose}><div style={{ background: 'linear-gradient(135deg, rgba(0,20,40,0.98) 0%, rgba(20,0,40,0.98) 100%)', border: '3px solid #ff00ff', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '320px', boxShadow: '0 0 60px #ff00ff' }}><div style={{ fontSize: '80px', marginBottom: '16px', filter: 'drop-shadow(0 0 20px #ff00ff)' }}>{badge.emoji}</div><h2 style={{ color: '#ff00ff', margin: '0 0 8px 0', fontSize: '24px', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ff00ff' }}>BADGE UNLOCKED!</h2><h3 style={{ color: '#00ffff', margin: '0 0 16px 0', fontSize: '28px', fontFamily: 'Orbitron, sans-serif' }}>{badge.name}</h3><p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '16px' }}>{badge.description}</p><button onClick={onClose} style={{ marginTop: '24px', padding: '14px 36px', fontSize: '16px', fontWeight: 'bold', border: '2px solid #00ffff', borderRadius: '25px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>AWESOME!</button></div></div>);
+      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1005 }} onClick={onClose}><div style={{ background: 'linear-gradient(135deg, rgba(0,20,40,0.98) 0%, rgba(20,0,40,0.98) 100%)', border: '3px solid #ff00ff', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '320px', boxShadow: '0 0 60px #ff00ff' }}><div style={{ fontSize: '80px', marginBottom: '16px', filter: 'drop-shadow(0 0 20px #ff00ff)' }}>{badge.emoji}</div><h2 style={{ color: '#ff00ff', margin: '0 0 8px 0', fontSize: '24px', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ff00ff' }}>BADGE UNLOCKED!</h2><h3 style={{ color: '#00ffff', margin: '0 0 16px 0', fontSize: '28px', fontFamily: 'Orbitron, sans-serif' }}>{badge.name}</h3><p style={{ color: 'rgba(255,255,255,0.9)', margin: 0, fontSize: '16px' }}>{badge.description}</p><button onClick={onClose} style={{ marginTop: '24px', padding: '14px 36px', fontSize: '16px', fontWeight: 'bold', border: '2px solid #00ffff', borderRadius: '25px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>AWESOME!</button></div></div>);
     };
 
     const LevelUpPopup = ({ level, onClose }) => {
       if (!level) return null;
-      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1002 }} onClick={onClose}><div style={{ background: 'linear-gradient(135deg, rgba(40,20,0,0.98) 0%, rgba(40,0,20,0.98) 100%)', border: '3px solid #ffff00', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '320px', boxShadow: '0 0 60px #ffff00' }}><div style={{ fontSize: '80px', marginBottom: '16px', filter: 'drop-shadow(0 0 20px #ffff00)', animation: 'float 1s ease-in-out infinite' }}>{level.emoji}</div><h2 style={{ color: '#ffff00', margin: '0 0 8px 0', fontSize: '28px', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ffff00' }}>LEVEL UP!</h2><h3 style={{ color: '#00ffff', margin: '0 0 16px 0', fontSize: '32px', fontFamily: 'Orbitron, sans-serif' }}>Level {level.level}</h3><p style={{ color: '#ff00ff', margin: 0, fontSize: '22px', fontFamily: 'Orbitron, sans-serif' }}>{level.name}</p><button onClick={onClose} style={{ marginTop: '24px', padding: '14px 36px', fontSize: '16px', fontWeight: 'bold', border: '2px solid #ffff00', borderRadius: '25px', background: 'transparent', color: '#ffff00', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>LET'S GO!</button></div></div>);
+      return (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1005 }} onClick={onClose}><div style={{ background: 'linear-gradient(135deg, rgba(40,20,0,0.98) 0%, rgba(40,0,20,0.98) 100%)', border: '3px solid #ffff00', borderRadius: '24px', padding: '40px', textAlign: 'center', animation: 'popIn 0.5s ease-out', maxWidth: '320px', boxShadow: '0 0 60px #ffff00' }}><div style={{ fontSize: '80px', marginBottom: '16px', filter: 'drop-shadow(0 0 20px #ffff00)', animation: 'float 1s ease-in-out infinite' }}>{level.emoji}</div><h2 style={{ color: '#ffff00', margin: '0 0 8px 0', fontSize: '28px', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #ffff00' }}>LEVEL UP!</h2><h3 style={{ color: '#00ffff', margin: '0 0 16px 0', fontSize: '32px', fontFamily: 'Orbitron, sans-serif' }}>Level {level.level}</h3><p style={{ color: '#ff00ff', margin: 0, fontSize: '22px', fontFamily: 'Orbitron, sans-serif' }}>{level.name}</p><button onClick={onClose} style={{ marginTop: '24px', padding: '14px 36px', fontSize: '16px', fontWeight: 'bold', border: '2px solid #ffff00', borderRadius: '25px', background: 'transparent', color: '#ffff00', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif' }}>LET'S GO!</button></div></div>);
     };
 
     const SpinningWheel = ({ activities, onComplete, onClose }) => {
@@ -235,28 +373,6 @@
       </div>);
     };
 
-    const ActivityCard = ({ activity, isFavorite, onToggleFavorite, onComplete, availableEquipment, participants, activityNotes, onUpdateNote }) => {
-      const [showNoteInput, setShowNoteInput] = useState(false);
-      const [noteText, setNoteText] = useState(activityNotes[activity.id] || '');
-      const hasAllEquipment = activity.equipment.every(eq => availableEquipment.includes(eq));
-      const missingEquipment = activity.equipment.filter(eq => !availableEquipment.includes(eq));
-      const difficultyColors = { 'Easy': '#00ff00', 'Medium': '#ffff00', 'Hard': '#ff0000' };
-      const handleSaveNote = () => { onUpdateNote(activity.id, noteText); setShowNoteInput(false); };
-
-      return (<div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '16px', opacity: hasAllEquipment ? 1 : 0.5, borderColor: hasAllEquipment ? '#00ffff' : '#444' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-          <div><h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#fff', fontFamily: 'Orbitron, sans-serif' }}>{activity.name}</h3><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: 'transparent', color: difficultyColors[activity.difficulty], border: `1px solid ${difficultyColors[activity.difficulty]}`, fontFamily: 'Orbitron, sans-serif' }}>{activity.difficulty}</span><span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: 'rgba(255,255,255,0.1)', color: '#aaa' }}>{activity.duration}</span><span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: 'transparent', color: '#00ffff', border: '1px solid #00ffff', fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold' }}>+{activity.points} XP</span></div></div>
-          <button onClick={() => onToggleFavorite(activity.id)} style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', padding: '4px', filter: isFavorite ? 'drop-shadow(0 0 10px #ff0080)' : 'none' }}>{isFavorite ? '💖' : '🖤'}</button>
-        </div>
-        <p style={{ color: '#bbb', marginBottom: '12px', lineHeight: '1.5' }}>{activity.description}</p>
-        {activity.equipment.length > 0 && (<div style={{ marginBottom: '12px' }}><span style={{ fontSize: '14px', color: '#888' }}>Equipment: </span>{activity.equipment.map(eq => { const equipment = EQUIPMENT_OPTIONS.find(e => e.id === eq); const isMissing = missingEquipment.includes(eq); return <span key={eq} style={{ display: 'inline-block', padding: '4px 8px', margin: '2px 4px', borderRadius: '8px', fontSize: '12px', backgroundColor: isMissing ? 'rgba(255,0,0,0.2)' : 'rgba(0,255,255,0.1)', color: isMissing ? '#ff4444' : '#00ffff', border: `1px solid ${isMissing ? '#ff4444' : '#00ffff'}` }}>{equipment?.emoji} {equipment?.name}</span>; })}</div>)}
-        <div style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>Ages {activity.minAge}-{activity.maxAge}</div>
-        {hasAllEquipment && participants.length > 0 && (<div style={{ marginBottom: '16px' }}><div style={{ fontSize: '14px', color: '#00ffff', marginBottom: '8px', fontFamily: 'Orbitron, sans-serif' }}>TAP TO COMPLETE:</div><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{participants.map(p => { const avatar = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; return (<button key={p.id} onClick={() => onComplete(activity, p.id)} style={{ padding: '10px 16px', borderRadius: '25px', border: `2px solid ${color.primary}`, background: 'transparent', color: color.primary, fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: color.glow }}><span style={{ filter: `drop-shadow(0 0 5px ${color.primary})` }}>{avatar?.emoji}</span><span>{p.name}</span></button>); })}{participants.length > 1 && (<button onClick={() => onComplete(activity, 'ALL')} style={{ padding: '10px 20px', borderRadius: '25px', border: '2px solid #ffff00', background: 'transparent', color: '#ffff00', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 0 20px rgba(255,255,0,0.3)', fontFamily: 'Orbitron, sans-serif' }}><span>👨‍👩‍👧‍👦</span><span>ALL</span></button>)}</div></div>)}
-        {!hasAllEquipment && (<div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,0,0,0.1)', color: '#ff4444', fontSize: '14px', marginBottom: '16px', border: '1px solid #ff4444' }}>⚠️ Missing equipment - enable in Settings</div>)}
-        <div style={{ borderTop: '1px solid #333', paddingTop: '12px' }}>{!showNoteInput ? (<button onClick={() => setShowNoteInput(true)} style={{ background: 'none', border: '1px dashed #444', borderRadius: '8px', padding: '8px 16px', color: '#666', fontSize: '14px', cursor: 'pointer', width: '100%', textAlign: 'left' }}>{activityNotes[activity.id] ? `📝 ${activityNotes[activity.id]}` : '💡 Add suggestion or note...'}</button>) : (<div><textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add your suggestions..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /><div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}><button onClick={handleSaveNote} style={{ padding: '8px 16px', borderRadius: '8px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer' }}>Save</button><button onClick={() => { setShowNoteInput(false); setNoteText(activityNotes[activity.id] || ''); }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', cursor: 'pointer' }}>Cancel</button></div></div>)}</div>
-      </div>);
-    };
-
     const ParticipantCard = ({ participant, onClick }) => {
       const avatar = AVATARS.find(a => a.id === participant.avatar);
       const color = COLOR_OPTIONS.find(c => c.id === participant.color) || COLOR_OPTIONS[0];
@@ -265,7 +381,7 @@
       const progressToNext = nextLevel ? ((participant.xp - currentLevel.minXP) / (nextLevel.minXP - currentLevel.minXP)) * 100 : 100;
 
       return (<div onClick={onClick} style={{ background: 'linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,20,50,0.95) 100%)', border: `2px solid ${color.primary}`, borderRadius: '20px', padding: '20px', color: 'white', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: `0 0 30px ${color.primary}40` }} onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = `0 0 50px ${color.primary}60`; }} onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 0 30px ${color.primary}40`; }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}><div style={{ width: '65px', height: '65px', borderRadius: '50%', backgroundColor: `${color.primary}20`, border: `2px solid ${color.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', marginRight: '16px', boxShadow: `0 0 20px ${color.primary}40`, animation: 'float 3s ease-in-out infinite' }}>{avatar?.emoji}</div><div><h3 style={{ margin: '0 0 4px 0', fontSize: '22px', fontFamily: 'Orbitron, sans-serif', color: color.primary, textShadow: `0 0 10px ${color.primary}` }}>{participant.name}</h3><div style={{ fontSize: '14px', color: '#aaa' }}>{currentLevel?.emoji} {currentLevel?.name}</div></div></div>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}><div style={{ width: '65px', height: '65px', borderRadius: '50%', backgroundColor: `${color.primary}20`, border: `2px solid ${color.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px', marginRight: '16px', boxShadow: `0 0 20px ${color.primary}40`, animation: 'float 3s ease-in-out infinite' }}>{avatar?.emoji}</div><div><h3 style={{ margin: '0 0 4px 0', fontSize: '22px', fontFamily: 'Orbitron, sans-serif', color: color.primary, textShadow: `0 0 10px ${color.primary}` }}>{participant.name}</h3><div style={{ fontSize: '14px', color: '#aaa' }}>{currentLevel?.emoji} {currentLevel?.name}</div><div style={{ fontSize: '12px', marginTop: '4px', color: getTier(participant.age).color, fontFamily: 'Orbitron, sans-serif' }}>{getTier(participant.age).emoji} {getTier(participant.age).label.toUpperCase()} TIER · AGE {participant.age}</div></div></div>
         <div style={{ marginBottom: '8px' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px', fontFamily: 'Orbitron, sans-serif' }}><span style={{ color: color.primary }}>{participant.xp} XP</span>{nextLevel && <span style={{ color: '#666' }}>{nextLevel.minXP} XP</span>}</div><div style={{ height: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${color.primary}40` }}><div style={{ height: '100%', width: `${progressToNext}%`, background: color.gradient, borderRadius: '4px', transition: 'width 0.5s ease-out', boxShadow: `0 0 10px ${color.primary}` }} /></div></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#888' }}><span>🏆 {participant.completedActivities?.length || 0} completed</span><span>🏅 {(participant.earnedBadges?.length || 0) + (participant.avatarBadges?.length || 0)} badges</span></div>
       </div>);
@@ -288,7 +404,8 @@
           xp: participant?.xp || 0,
           completedActivities: participant?.completedActivities || [],
           earnedBadges: participant?.earnedBadges || [],
-          avatarBadges: participant?.avatarBadges || []
+          avatarBadges: participant?.avatarBadges || [],
+          coursesCompleted: participant?.coursesCompleted || []
         };
         onSave(participantData);
       };
@@ -296,7 +413,7 @@
       return (<div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
         <h3 style={{ margin: '0 0 16px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{isNew ? 'NEW PILOT' : 'EDIT PILOT'}</h3>
         <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>NAME</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter name" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /></div>
-        <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AGE</label><input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" min="1" max="18" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /></div>
+        <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AGE</label><input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" min="4" max="99" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} />{age && <div style={{ marginTop: '6px', fontSize: '13px', color: getTier(age).color }}>{getTier(age).emoji} {getTier(age).label} tier ({getTier(age).ages}) — exercise targets will be set for this level{Number(age) < 9 ? '. (Exercises are designed for ages 9+, so keep an eye on younger kids.)' : ''}</div>}</div>
         <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>AVATAR</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{AVATARS.map(a => (<button key={a.id} onClick={() => setAvatar(a.id)} style={{ width: '52px', height: '52px', borderRadius: '12px', border: avatar === a.id ? '3px solid #00ffff' : '2px solid #333', background: avatar === a.id ? 'rgba(0,255,255,0.1)' : 'rgba(0,0,0,0.3)', fontSize: '28px', cursor: 'pointer', boxShadow: avatar === a.id ? '0 0 15px #00ffff' : 'none' }}>{a.emoji}</button>))}</div></div>
         <div style={{ marginBottom: '20px' }}><label style={{ display: 'block', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>COLOR THEME</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{COLOR_OPTIONS.map(c => (<button key={c.id} onClick={() => setColor(c.id)} style={{ width: '52px', height: '52px', borderRadius: '12px', border: color === c.id ? '3px solid #fff' : '2px solid transparent', background: c.gradient, cursor: 'pointer', boxShadow: color === c.id ? `0 0 20px ${c.primary}` : c.glow }} />))}</div></div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}><button onClick={handleSaveClick} disabled={!name || !age} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #00ff00', background: 'transparent', color: name && age ? '#00ff00' : '#444', fontWeight: 'bold', fontSize: '14px', cursor: name && age ? 'pointer' : 'not-allowed', fontFamily: 'Orbitron, sans-serif', boxShadow: name && age ? '0 0 15px rgba(0,255,0,0.3)' : 'none' }}>{isNew ? 'ADD PILOT' : 'SAVE'}</button><button onClick={onCancel} style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>CANCEL</button>{!isNew && (<button onClick={() => onDelete(stableId)} style={{ padding: '12px 24px', borderRadius: '8px', border: '2px solid #ff0000', background: 'transparent', color: '#ff0000', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', marginLeft: 'auto', fontFamily: 'Orbitron, sans-serif' }}>DELETE</button>)}</div>
@@ -317,72 +434,382 @@
       </div>);
     };
 
+
+    // ===== HELPERS =====
+    const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
+    const fmtDuration = (s) => (s < 90 ? `${s} sec` : `~${Math.round(s / 60)} min`);
+    const hasEquipmentFor = (activity, equipment) => activity.equipment.every(eq => equipment.includes(eq));
+    const ageOk = (activity, age) => { const a = Number(age); return isNaN(a) || a >= activity.minAge; };
+    const shuffle = (arr) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const getActivity = (id) => ACTIVITY_LIBRARY.find(a => a.id === id);
+
+    // Picks the exercises for one run of a course, using only what this group can do.
+    const buildCourseSteps = (course, equipment, players) => {
+      const youngest = Math.min(...players.map(p => Number(p.age) || 99), 99);
+      const usable = (a) => a && hasEquipmentFor(a, equipment) && youngest >= a.minAge;
+      if (course.slots) {
+        const chosen = [];
+        course.slots.forEach(slot => { const pick = shuffle(slot).map(getActivity).find(a => usable(a) && !chosen.includes(a)); if (pick) chosen.push(pick); });
+        return chosen;
+      }
+      return shuffle(course.pool).map(getActivity).filter(usable).slice(0, course.count);
+    };
+    const countCourseOptions = (course, equipment) => {
+      const ids = course.slots ? [...new Set(course.slots.flat())] : course.pool;
+      return ids.map(getActivity).filter(a => a && hasEquipmentFor(a, equipment)).length;
+    };
+
+    // Short beeps for the course timer (no files needed).
+    let audioCtx = null;
+    const unlockAudio = () => { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} };
+    const beep = (freq = 880, ms = 160, delay = 0) => {
+      try {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime + delay / 1000; const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.frequency.value = freq; o.connect(g); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + ms / 1000); o.start(t); o.stop(t + ms / 1000);
+      } catch (e) {}
+    };
+
+    // ===== WHAT IT TRAINS (muscles / skills / muscle work) =====
+    const TrainsInfo = ({ activity, compact }) => {
+      const row = (title, items) => items.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '6px', flexWrap: compact ? 'wrap' : 'nowrap' }}>
+          <div style={{ minWidth: '92px', fontSize: '11px', color: '#888', fontFamily: 'Orbitron, sans-serif', paddingTop: '5px' }}>{title}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', flex: 1, minWidth: 0 }}>{items}</div>
+        </div>
+      );
+      return (<div style={{ marginBottom: '12px', padding: '12px', borderRadius: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #2a2a4a' }}>
+        {row('MUSCLE WORK', activity.work.map(w => (<span key={w} className="chip" title={WORK_TYPES[w].info} style={{ color: WORK_TYPES[w].color, border: `1px solid ${WORK_TYPES[w].color}`, fontWeight: 'bold' }}>{WORK_TYPES[w].emoji} {WORK_TYPES[w].label}</span>)))}
+        {row('MUSCLES', activity.muscles.map(m => (<span key={m} className="chip" style={{ color: '#fff', background: 'rgba(255,128,0,0.15)', border: '1px solid rgba(255,128,0,0.5)' }}>{MUSCLES[m].emoji} {MUSCLES[m].label}</span>)))}
+        {row('SKILLS', activity.skills.map(s => (<span key={s} className="chip" style={{ color: '#fff', background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.4)' }}>{SKILLS[s].emoji} {SKILLS[s].label}</span>)))}
+      </div>);
+    };
+
+    const WorkLegend = () => (<div className="neon-card" style={{ borderRadius: '12px', padding: '14px', marginBottom: '16px', borderColor: '#444' }}>
+      <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#00ffff', marginBottom: '8px' }}>TYPES OF MUSCLE WORK</div>
+      {Object.entries(WORK_TYPES).map(([id, w]) => (<div key={id} style={{ fontSize: '13px', color: '#bbb', marginBottom: '4px' }}><span style={{ color: w.color, fontWeight: 'bold' }}>{w.emoji} {w.label}</span> — {w.info}</div>))}
+    </div>);
+
+    // ===== PER-PLAYER TARGETS (Rookie / Pro / Elite) =====
+    const TierTargets = ({ activity, participants, big }) => (
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{ fontSize: '11px', color: '#888', fontFamily: 'Orbitron, sans-serif', marginBottom: '6px' }}>TARGETS BY AGE</div>
+        {TIERS.map(tier => {
+          const who = participants.filter(p => getTier(p.age).id === tier.id);
+          const active = participants.length === 0 || who.length > 0;
+          return (<div key={tier.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: big ? '12px 14px' : '8px 12px', marginBottom: '6px', borderRadius: '10px', background: active ? `${tier.color}14` : 'rgba(0,0,0,0.2)', border: `1px solid ${active ? tier.color : '#2a2a3a'}`, opacity: active ? 1 : 0.45 }}>
+            <div style={{ minWidth: big ? '110px' : '92px', color: tier.color, fontFamily: 'Orbitron, sans-serif', fontSize: big ? '13px' : '11px', fontWeight: 'bold' }}>{tier.emoji} {tier.label.toUpperCase()}<div style={{ color: '#777', fontWeight: 'normal', fontSize: '10px' }}>ages {tier.ages}</div></div>
+            <div style={{ flex: 1, color: '#fff', fontSize: big ? '18px' : '14px', fontWeight: active ? 'bold' : 'normal' }}>{activity.tiers[tier.id]}</div>
+            {who.length > 0 && (<div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>{who.map(p => { const av = AVATARS.find(a => a.id === p.avatar); return <span key={p.id} title={p.name} style={{ fontSize: big ? '14px' : '12px', color: '#ddd', whiteSpace: 'nowrap' }}>{av?.emoji} {p.name}</span>; })}</div>)}
+          </div>);
+        })}
+      </div>
+    );
+
+    // ===== ACTIVITY CARD =====
+    const ActivityCard = ({ activity, isFavorite, onToggleFavorite, onComplete, availableEquipment, participants, activityNotes, onUpdateNote }) => {
+      const [showNoteInput, setShowNoteInput] = useState(false);
+      const [noteText, setNoteText] = useState(activityNotes[activity.id] || '');
+      const hasAllEquipment = hasEquipmentFor(activity, availableEquipment);
+      const missingEquipment = activity.equipment.filter(eq => !availableEquipment.includes(eq));
+      const eligiblePlayers = participants.filter(p => ageOk(activity, p.age));
+      const ageBlocked = participants.length > 0 && eligiblePlayers.length === 0;
+      const usable = hasAllEquipment && !ageBlocked;
+      const difficultyColors = { 'Easy': '#00ff00', 'Medium': '#ffff00', 'Hard': '#ff4040' };
+      const handleSaveNote = () => { onUpdateNote(activity.id, noteText); setShowNoteInput(false); };
+
+      return (<div className="neon-card" style={{ borderRadius: '16px', padding: '20px', marginBottom: '16px', opacity: usable ? 1 : 0.5, borderColor: usable ? '#00ffff' : '#444' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <div><h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#fff', fontFamily: 'Orbitron, sans-serif' }}>{activity.name}</h3>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', color: difficultyColors[activity.difficulty], border: `1px solid ${difficultyColors[activity.difficulty]}`, fontFamily: 'Orbitron, sans-serif' }}>{activity.difficulty} intensity</span>
+              <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', backgroundColor: 'rgba(255,255,255,0.1)', color: '#aaa' }}>⏱ {fmtDuration(activity.durationSec)}</span>
+              <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', color: '#00ffff', border: '1px solid #00ffff', fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold' }}>+{activity.points} XP</span>
+              {activity.minAge > 9 && <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '12px', color: '#ff8000', border: '1px solid #ff8000' }}>Ages {activity.minAge}+</span>}
+            </div></div>
+          <button onClick={() => onToggleFavorite(activity.id)} style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', padding: '4px', filter: isFavorite ? 'drop-shadow(0 0 10px #ff0080)' : 'none' }}>{isFavorite ? '💖' : '🖤'}</button>
+        </div>
+        <p style={{ color: '#ccc', marginBottom: '12px', lineHeight: '1.5' }}>{activity.description}</p>
+        <TrainsInfo activity={activity} />
+        <TierTargets activity={activity} participants={participants} />
+        {activity.equipment.length > 0 && (<div style={{ marginBottom: '12px' }}><span style={{ fontSize: '14px', color: '#888' }}>Equipment: </span>{activity.equipment.map(eq => { const equipment = EQUIPMENT_OPTIONS.find(e => e.id === eq); const isMissing = missingEquipment.includes(eq); return <span key={eq} style={{ display: 'inline-block', padding: '4px 8px', margin: '2px 4px', borderRadius: '8px', fontSize: '12px', backgroundColor: isMissing ? 'rgba(255,0,0,0.2)' : 'rgba(0,255,255,0.1)', color: isMissing ? '#ff4444' : '#00ffff', border: `1px solid ${isMissing ? '#ff4444' : '#00ffff'}` }}>{equipment?.emoji} {equipment?.name}</span>; })}</div>)}
+        {usable && eligiblePlayers.length > 0 && (<div style={{ marginBottom: '16px' }}><div style={{ fontSize: '14px', color: '#00ffff', marginBottom: '8px', fontFamily: 'Orbitron, sans-serif' }}>TAP TO COMPLETE:</div><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{eligiblePlayers.map(p => { const avatar = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; return (<button key={p.id} onClick={() => onComplete(activity, p.id)} style={{ padding: '10px 16px', borderRadius: '25px', border: `2px solid ${color.primary}`, background: 'transparent', color: color.primary, fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: color.glow }}><span>{avatar?.emoji}</span><span>{p.name}</span></button>); })}{eligiblePlayers.length > 1 && (<button onClick={() => onComplete(activity, eligiblePlayers.map(p => p.id))} style={{ padding: '10px 20px', borderRadius: '25px', border: '2px solid #ffff00', background: 'transparent', color: '#ffff00', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', boxShadow: '0 0 20px rgba(255,255,0,0.3)', fontFamily: 'Orbitron, sans-serif' }}>👨‍👩‍👧‍👦 ALL</button>)}</div></div>)}
+        {!hasAllEquipment && (<div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,0,0,0.1)', color: '#ff4444', fontSize: '14px', marginBottom: '16px', border: '1px solid #ff4444' }}>⚠️ Missing equipment — enable it in Command Center</div>)}
+        {hasAllEquipment && ageBlocked && (<div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(255,128,0,0.1)', color: '#ff8000', fontSize: '14px', marginBottom: '16px', border: '1px solid #ff8000' }}>🔒 For ages {activity.minAge}+</div>)}
+        <div style={{ borderTop: '1px solid #333', paddingTop: '12px' }}>{!showNoteInput ? (<button onClick={() => setShowNoteInput(true)} style={{ background: 'none', border: '1px dashed #444', borderRadius: '8px', padding: '8px 16px', color: '#666', fontSize: '14px', cursor: 'pointer', width: '100%', textAlign: 'left' }}>{activityNotes[activity.id] ? `📝 ${activityNotes[activity.id]}` : '💡 Add suggestion or note...'}</button>) : (<div><textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add your suggestions..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '2px solid #00ffff', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} /><div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}><button onClick={handleSaveNote} style={{ padding: '8px 16px', borderRadius: '8px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer' }}>Save</button><button onClick={() => { setShowNoteInput(false); setNoteText(activityNotes[activity.id] || ''); }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #444', background: 'transparent', color: '#888', cursor: 'pointer' }}>Cancel</button></div></div>)}</div>
+      </div>);
+    };
+
+    // ===== COURSES: list =====
+    const CoursesView = ({ equipment, participants, onPick }) => (<div>
+      <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>🧭 COURSES</h1>
+      <p style={{ color: '#888', marginBottom: '20px' }}>A guided set of exercises with a timer. Each player gets targets for their age.</p>
+      {participants.length === 0 && <div style={{ padding: '14px', borderRadius: '10px', border: '1px solid #ff8000', color: '#ff8000', marginBottom: '16px' }}>Add pilots in Command Center first.</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '14px' }}>
+        {COURSES.map(course => { const n = countCourseOptions(course, equipment); const enough = n >= Math.min(3, course.count); return (
+          <button key={course.id} onClick={() => onPick(course)} disabled={participants.length === 0} style={{ textAlign: 'left', padding: '18px', borderRadius: '16px', border: `2px solid ${enough ? course.color : '#444'}`, background: 'linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,20,50,0.95) 100%)', color: '#fff', cursor: participants.length ? 'pointer' : 'not-allowed', boxShadow: enough ? `0 0 20px ${course.color}40` : 'none', opacity: enough ? 1 : 0.6 }}>
+            <div style={{ fontSize: '34px', marginBottom: '6px' }}>{course.emoji}</div>
+            <div style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold', color: course.color, fontSize: '16px', marginBottom: '4px' }}>{course.name}</div>
+            <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '8px' }}>{course.description}</div>
+            <div style={{ fontSize: '12px', color: enough ? '#888' : '#ff8000' }}>{course.count} exercises · {n} available with your equipment</div>
+          </button>); })}
+      </div>
+    </div>);
+
+    // ===== COURSES: setup (pick players, preview steps) =====
+    const CourseSetup = ({ course, participants, equipment, onStart, onClose }) => {
+      const [playerIds, setPlayerIds] = useState(participants.map(p => p.id));
+      const players = participants.filter(p => playerIds.includes(p.id));
+      const [steps, setSteps] = useState(() => buildCourseSteps(course, equipment, participants));
+      useEffect(() => { setSteps(buildCourseSteps(course, equipment, players)); }, [playerIds.join(',')]);
+      const total = steps.reduce((s, a) => s + a.durationSec, 0) + steps.length * 15;
+      const toggle = (id) => setPlayerIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+      return (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 1001, overflowY: 'auto', padding: '20px' }}>
+        <div className="neon-card" style={{ maxWidth: '640px', margin: '20px auto', borderRadius: '20px', padding: '24px', borderColor: course.color }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}><h2 style={{ color: course.color, fontFamily: 'Orbitron, sans-serif', margin: 0 }}>{course.emoji} {course.name}</h2><button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', fontSize: '24px', cursor: 'pointer' }}>✕</button></div>
+          <p style={{ color: '#aaa', marginBottom: '18px' }}>{course.description}</p>
+          <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#888', marginBottom: '8px' }}>WHO'S PLAYING?</div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>{participants.map(p => { const on = playerIds.includes(p.id); const av = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; const tier = getTier(p.age); return (<button key={p.id} onClick={() => toggle(p.id)} style={{ padding: '10px 14px', borderRadius: '14px', border: `2px solid ${on ? color.primary : '#333'}`, background: on ? `${color.primary}18` : 'transparent', color: on ? color.primary : '#666', cursor: 'pointer', fontWeight: 'bold' }}>{on ? '✓ ' : ''}{av?.emoji} {p.name} <span style={{ fontSize: '11px', color: tier.color }}>{tier.label}</span></button>); })}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}><div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#888' }}>THE PLAN · {fmtDuration(total)}</div><button onClick={() => setSteps(buildCourseSteps(course, equipment, players))} style={{ padding: '6px 14px', borderRadius: '10px', border: '1px solid #00ffff', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontSize: '13px' }}>🔀 Shuffle</button></div>
+          {steps.length === 0 ? (<div style={{ padding: '16px', color: '#ff8000', border: '1px solid #ff8000', borderRadius: '10px', marginBottom: '16px' }}>No exercises available — add equipment in Command Center or choose different players.</div>) : (
+            <ol style={{ listStyle: 'none', marginBottom: '16px' }}>{steps.map((a, i) => (<li key={a.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', marginBottom: '6px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid #2a2a4a', color: '#ddd' }}><span><span style={{ color: course.color, fontFamily: 'Orbitron, sans-serif', marginRight: '10px' }}>{i + 1}</span>{a.name}<span style={{ color: '#777', fontSize: '12px', marginLeft: '8px' }}>{a.work.map(w => WORK_TYPES[w].emoji).join(' ')} {a.muscles.slice(0, 3).map(m => MUSCLES[m].label).join(', ')}</span></span><span style={{ color: '#888', fontSize: '13px', whiteSpace: 'nowrap' }}>{fmtDuration(a.durationSec)}</span></li>))}</ol>)}
+          {steps.length > 0 && steps.length < course.count && <div style={{ color: '#ff8000', fontSize: '13px', marginBottom: '14px' }}>Only {steps.length} of {course.count} exercises fit your equipment — add more gear for the full course.</div>}
+          <button disabled={players.length === 0 || steps.length === 0} onClick={() => { unlockAudio(); onStart(steps, playerIds); }} className="arcade-btn" style={{ width: '100%', padding: '18px', fontSize: '18px', border: `3px solid ${course.color}`, borderRadius: '14px', background: 'transparent', color: course.color, cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: `0 0 30px ${course.color}50`, opacity: players.length && steps.length ? 1 : 0.4 }}>🚀 START COURSE</button>
+        </div>
+      </div>);
+    };
+
+    // ===== COURSES: guided runner with timer =====
+    const REST_SEC = 15, GET_READY_SEC = 10;
+    const CourseRunner = ({ course, steps, players, onStepDone, onFinish, onExit }) => {
+      const [index, setIndex] = useState(0);
+      const [phase, setPhase] = useState('ready'); // ready → work → rest → work … → done
+      const [remaining, setRemaining] = useState(GET_READY_SEC);
+      const [paused, setPaused] = useState(false);
+      const [results, setResults] = useState([]);
+      const [confirmExit, setConfirmExit] = useState(false);
+      const step = steps[index];
+      const timing = phase === 'ready' || phase === 'work' || phase === 'rest';
+
+      useEffect(() => {
+        if (!timing || paused || remaining <= 0) return;
+        const t = setTimeout(() => setRemaining(r => r - 1), 1000);
+        return () => clearTimeout(t);
+      }, [remaining, paused, phase]);
+
+      useEffect(() => {
+        if (!timing || paused) return;
+        if (remaining > 0 && remaining <= 3 && phase !== 'work') beep(660, 120);
+        if (remaining !== 0) return;
+        if (phase === 'ready' || phase === 'rest') { beep(990, 300); setPhase('work'); setRemaining(step.durationSec); }
+        else if (phase === 'work') { beep(880, 200); beep(880, 200, 300); beep(1100, 400, 600); }
+      }, [remaining, phase, paused]);
+
+      const advance = (status) => {
+        setResults(prev => [...prev, { activity: step, status }]);
+        if (status === 'done') onStepDone(step, players.map(p => p.id));
+        setPaused(false);
+        if (index + 1 >= steps.length) { setPhase('done'); return; }
+        setIndex(index + 1); setPhase('rest'); setRemaining(REST_SEC);
+      };
+
+      const doneCount = results.filter(r => r.status === 'done').length;
+      const bonus = doneCount > 0 ? 15 + doneCount * 5 : 0;
+      const totalTime = phase === 'work' ? step.durationSec : phase === 'rest' ? REST_SEC : GET_READY_SEC;
+      const pct = timing ? Math.max(0, remaining) / totalTime : 0;
+      const timeUp = phase === 'work' && remaining <= 0;
+      const ringColor = phase === 'work' ? (timeUp ? '#ff4040' : course.color) : '#888';
+      const btn = (color) => ({ padding: '16px 22px', fontSize: '16px', border: `2px solid ${color}`, borderRadius: '14px', background: 'transparent', color, cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold', flex: 1, minWidth: '120px' });
+
+      return (<div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(180deg, #0a0a1a 0%, #12122a 100%)', zIndex: 1001, overflowY: 'auto' }}>
+        <div style={{ maxWidth: '720px', margin: '0 auto', padding: '20px 20px 40px' }}>
+          {/* header + progress */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div style={{ fontFamily: 'Orbitron, sans-serif', color: course.color, fontWeight: 'bold' }}>{course.emoji} {course.name}</div>
+            {phase !== 'done' && (confirmExit ? (<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><span style={{ color: '#aaa', fontSize: '13px' }}>End course?</span><button onClick={onExit} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #ff4040', background: 'transparent', color: '#ff4040', cursor: 'pointer' }}>Yes, exit</button><button onClick={() => setConfirmExit(false)} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #666', background: 'transparent', color: '#aaa', cursor: 'pointer' }}>No</button></div>) : (<button onClick={() => { setConfirmExit(true); setPaused(true); }} style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #666', background: 'transparent', color: '#aaa', cursor: 'pointer' }}>✕ Exit</button>))}
+          </div>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '24px' }}>{steps.map((s, i) => { const r = results[i]; const bg = r ? (r.status === 'done' ? course.color : '#555') : i === index && phase !== 'done' ? `${course.color}66` : 'rgba(255,255,255,0.1)'; return <div key={i} style={{ flex: 1, height: '8px', borderRadius: '4px', background: bg, boxShadow: r?.status === 'done' ? `0 0 8px ${course.color}` : 'none' }} />; })}</div>
+
+          {phase === 'done' ? (
+            <div className="neon-card" style={{ borderRadius: '20px', padding: '32px', textAlign: 'center', borderColor: course.color }}>
+              <div style={{ fontSize: '72px', marginBottom: '10px' }}>🏁</div>
+              <h2 style={{ fontFamily: 'Orbitron, sans-serif', color: course.color, marginBottom: '8px' }}>COURSE COMPLETE!</h2>
+              <p style={{ color: '#aaa', marginBottom: '18px' }}>{doneCount} of {steps.length} exercises done</p>
+              <div style={{ textAlign: 'left', marginBottom: '20px' }}>{results.map((r, i) => (<div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #222', color: r.status === 'done' ? '#ddd' : '#666' }}><span>{r.status === 'done' ? '✅' : '⏭'} {r.activity.name}</span><span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '13px', color: r.status === 'done' ? '#00ff00' : '#666' }}>{r.status === 'done' ? `+${r.activity.points}` : 'skipped'}</span></div>))}</div>
+              {bonus > 0 && <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '22px', color: '#ffff00', textShadow: '0 0 15px #ffff00', marginBottom: '20px' }}>COURSE BONUS +{bonus} XP each</div>}
+              <button onClick={() => onFinish(bonus, doneCount)} className="arcade-btn" style={{ ...btn('#00ff00'), width: '100%' }}>{bonus > 0 ? 'COLLECT BONUS 🎉' : 'BACK TO BASE'}</button>
+            </div>
+          ) : (<>
+            <div style={{ textAlign: 'center', marginBottom: '6px', color: '#888', fontFamily: 'Orbitron, sans-serif', fontSize: '13px', letterSpacing: '2px' }}>
+              {phase === 'ready' ? 'GET READY' : phase === 'rest' ? 'REST — UP NEXT' : `EXERCISE ${index + 1} OF ${steps.length}`}
+            </div>
+            <h1 style={{ textAlign: 'center', fontFamily: 'Orbitron, sans-serif', color: '#fff', fontSize: '28px', marginBottom: '16px' }}>{step.name}</h1>
+
+            {/* timer ring */}
+            <div style={{ position: 'relative', width: '190px', height: '190px', margin: '0 auto 18px' }}>
+              <svg width="190" height="190" viewBox="0 0 190 190" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="95" cy="95" r="84" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
+                <circle cx="95" cy="95" r="84" fill="none" stroke={ringColor} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 84} strokeDashoffset={2 * Math.PI * 84 * (1 - pct)} style={{ transition: 'stroke-dashoffset 1s linear', filter: `drop-shadow(0 0 8px ${ringColor})` }} />
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: timeUp ? '30px' : '46px', fontWeight: 'bold', color: ringColor, animation: timeUp || paused ? 'timeUp 1s infinite' : 'none' }}>{timeUp ? 'TIME!' : fmtClock(remaining)}</div>
+                {paused && <div style={{ color: '#ffff00', fontFamily: 'Orbitron, sans-serif', fontSize: '13px' }}>PAUSED</div>}
+              </div>
+            </div>
+
+            {/* controls */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '22px' }}>
+              {!timeUp && <button onClick={() => setPaused(p => !p)} style={btn('#ffff00')}>{paused ? '▶ RESUME' : '⏸ PAUSE'}</button>}
+              {phase === 'work' ? (<>
+                <button onClick={() => advance('done')} style={btn('#00ff00')}>✓ DONE</button>
+                <button onClick={() => advance('skipped')} style={btn('#888')}>⏭ SKIP</button>
+              </>) : (<button onClick={() => { setPhase('work'); setRemaining(step.durationSec); setPaused(false); beep(990, 300); }} style={btn('#00ffff')}>▶ START NOW</button>)}
+            </div>
+            {timeUp && <p style={{ textAlign: 'center', color: '#ff8080', marginTop: '-10px', marginBottom: '18px' }}>Time’s up! Tap DONE if you finished your target, or SKIP.</p>}
+
+            <p style={{ color: '#ccc', lineHeight: 1.5, marginBottom: '14px', fontSize: '16px' }}>{step.description}</p>
+            <TierTargets activity={step} participants={players} big />
+            <TrainsInfo activity={step} />
+          </>)}
+        </div>
+      </div>);
+    };
+
+    const loadJSON = (key, fallback) => { try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) : fallback; } catch (e) { return fallback; } };
+    const saveJSON = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
+
     function App() {
       const [view, setView] = useState('dashboard');
       const [selectedParticipant, setSelectedParticipant] = useState(null);
       const [showConfetti, setShowConfetti] = useState(false);
-      const [newBadge, setNewBadge] = useState(null);
-      const [newLevel, setNewLevel] = useState(null);
+      const [popupQueue, setPopupQueue] = useState([]); // badges + level-ups, shown one at a time
       const [pointsPopup, setPointsPopup] = useState(null);
       const [showWheel, setShowWheel] = useState(false);
       const [activityFilter, setActivityFilter] = useState('all');
+      const [focusFilter, setFocusFilter] = useState('');
       const [searchQuery, setSearchQuery] = useState('');
+      const [showLegend, setShowLegend] = useState(false);
+      const [courseSetup, setCourseSetup] = useState(null);
+      const [courseRun, setCourseRun] = useState(null);
 
-      const [participants, setParticipants] = useState(() => { const saved = localStorage.getItem('gymAdventure_participants'); return saved ? JSON.parse(saved) : []; });
-      const [equipment, setEquipment] = useState(() => { const saved = localStorage.getItem('gymAdventure_equipment'); return saved ? JSON.parse(saved) : []; });
-      const [favorites, setFavorites] = useState(() => { const saved = localStorage.getItem('gymAdventure_favorites'); return saved ? JSON.parse(saved) : []; });
-      const [completionHistory, setCompletionHistory] = useState(() => { const saved = localStorage.getItem('gymAdventure_history'); return saved ? JSON.parse(saved) : []; });
-      const [activityNotes, setActivityNotes] = useState(() => { const saved = localStorage.getItem('gymAdventure_notes'); return saved ? JSON.parse(saved) : {}; });
+      const [participants, setParticipants] = useState(() => loadJSON('gymAdventure_participants', []));
+      const [equipment, setEquipment] = useState(() => loadJSON('gymAdventure_equipment', []));
+      const [favorites, setFavorites] = useState(() => loadJSON('gymAdventure_favorites', []));
+      const [completionHistory, setCompletionHistory] = useState(() => loadJSON('gymAdventure_history', []));
+      const [activityNotes, setActivityNotes] = useState(() => loadJSON('gymAdventure_notes', {}));
 
-      useEffect(() => { localStorage.setItem('gymAdventure_participants', JSON.stringify(participants)); }, [participants]);
-      useEffect(() => { localStorage.setItem('gymAdventure_equipment', JSON.stringify(equipment)); }, [equipment]);
-      useEffect(() => { localStorage.setItem('gymAdventure_favorites', JSON.stringify(favorites)); }, [favorites]);
-      useEffect(() => { localStorage.setItem('gymAdventure_history', JSON.stringify(completionHistory)); }, [completionHistory]);
-      useEffect(() => { localStorage.setItem('gymAdventure_notes', JSON.stringify(activityNotes)); }, [activityNotes]);
+      useEffect(() => saveJSON('gymAdventure_participants', participants), [participants]);
+      useEffect(() => saveJSON('gymAdventure_equipment', equipment), [equipment]);
+      useEffect(() => saveJSON('gymAdventure_favorites', favorites), [favorites]);
+      useEffect(() => saveJSON('gymAdventure_history', completionHistory), [completionHistory]);
+      useEffect(() => saveJSON('gymAdventure_notes', activityNotes), [activityNotes]);
 
-      const getParticipantStats = (participant) => { const completed = participant.completedActivities || []; return { totalCompleted: completed.length, totalPoints: participant.xp || 0, balanceCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'balance').length, jumpCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'jump').length, teamCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.tags?.includes('team')).length, strengthCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'strength').length, danceCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'dance').length, yogaCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'yoga').length, obstacleCompleted: completed.filter(c => ACTIVITY_LIBRARY.find(a => a.id === c.activityId)?.category === 'obstacle').length, favoritesCount: favorites.length, uniqueActivities: new Set(completed.map(c => c.activityId)).size, uniqueDays: new Set(completed.map(c => new Date(c.date).toDateString())).size }; };
-      const checkBadges = (participant) => { const stats = getParticipantStats(participant); const earnedBadges = participant.earnedBadges || []; for (const badge of BADGES) { if (!earnedBadges.includes(badge.id) && badge.condition(stats)) return badge; } return null; };
-      const checkAvatarBadges = (participant) => { const avatarBadges = participant.avatarBadges || []; const avatarId = participant.avatar; const completedCount = (participant.completedActivities || []).length; for (const badge of AVATAR_BADGES) { if (badge.avatarId === avatarId && !avatarBadges.includes(badge.id) && completedCount >= badge.threshold) { return badge; } } return null; };
-      const toggleFavorite = (activityId) => setFavorites(prev => prev.includes(activityId) ? prev.filter(id => id !== activityId) : [...prev, activityId]);
-
-      const completeActivity = (activity, participantIdOrAll) => {
-        const participantIds = participantIdOrAll === 'ALL' ? participants.map(p => p.id) : [participantIdOrAll];
-        let totalPoints = 0; let completedNames = [];
-        participantIds.forEach(participantId => {
-          const participant = participants.find(p => p.id === participantId); if (!participant) return;
-          const previousLevel = LEVELS.filter(l => participant.xp >= l.minXP).pop();
-          const updatedParticipant = { ...participant, xp: (participant.xp || 0) + activity.points, completedActivities: [...(participant.completedActivities || []), { activityId: activity.id, date: new Date().toISOString(), points: activity.points }] };
-          const newLevelData = LEVELS.filter(l => updatedParticipant.xp >= l.minXP).pop();
-          if (newLevelData.level > previousLevel.level) { setTimeout(() => setNewLevel(newLevelData), participantIds.length > 1 ? 2000 : 1500); }
-          const badge = checkBadges(updatedParticipant); if (badge) { updatedParticipant.earnedBadges = [...(updatedParticipant.earnedBadges || []), badge.id]; setTimeout(() => setNewBadge(badge), newLevelData.level > previousLevel.level ? 4000 : 2500); }
-          const avatarBadge = checkAvatarBadges(updatedParticipant); if (avatarBadge) { updatedParticipant.avatarBadges = [...(updatedParticipant.avatarBadges || []), avatarBadge.id]; setTimeout(() => setNewBadge(avatarBadge), badge ? 5500 : (newLevelData.level > previousLevel.level ? 4000 : 2500)); }
-          setParticipants(prev => prev.map(p => p.id === participantId ? updatedParticipant : p));
-          setCompletionHistory(prev => [...prev, { participantId, participantName: participant.name, activityId: activity.id, activityName: activity.name, points: activity.points, date: new Date().toISOString() }]);
-          totalPoints += activity.points; completedNames.push(participant.name);
-        });
-        setPointsPopup({ points: totalPoints, participantName: participantIdOrAll === 'ALL' ? 'Everyone' : completedNames[0] });
-        setShowConfetti(true); setTimeout(() => setShowConfetti(false), 3000);
+      const getParticipantStats = (participant) => {
+        const completed = participant.completedActivities || [];
+        const byCat = (cat) => completed.filter(c => getActivity(c.activityId)?.category === cat).length;
+        const courses = participant.coursesCompleted || [];
+        return {
+          totalCompleted: completed.length, totalPoints: participant.xp || 0,
+          balanceCompleted: byCat('balance'), jumpCompleted: byCat('jump'), strengthCompleted: byCat('strength'), danceCompleted: byCat('dance'),
+          yogaCompleted: byCat('yoga'), obstacleCompleted: byCat('obstacle'), coreCompleted: byCat('core'), cardioCompleted: byCat('cardio'), agilityCompleted: byCat('agility'),
+          teamCompleted: completed.filter(c => getActivity(c.activityId)?.tags?.includes('team')).length,
+          favoritesCount: favorites.length, uniqueActivities: new Set(completed.map(c => c.activityId)).size,
+          uniqueDays: new Set(completed.map(c => new Date(c.date).toDateString())).size,
+          coursesCompleted: courses.length, uniqueCourses: new Set(courses).size,
+        };
       };
 
-      const saveParticipant = (participantData) => { const existing = participants.find(p => p.id === participantData.id); if (existing) { setParticipants(prev => prev.map(p => p.id === participantData.id ? { ...p, ...participantData } : p)); } else { if (participants.length >= 4) return; setParticipants(prev => [...prev, participantData]); } };
+      // Gives XP to players, checks levels and badges. `extra(p)` can change the player record (e.g. log an activity).
+      const award = (ids, points, extra, historyName, opts = {}) => {
+        const unlocks = [];
+        const names = [];
+        const updated = participants.map(p => {
+          if (!ids.includes(p.id)) return p;
+          const prevLevel = LEVELS.filter(l => (p.xp || 0) >= l.minXP).pop();
+          let u = extra({ ...p, xp: (p.xp || 0) + points });
+          const newLevel = LEVELS.filter(l => u.xp >= l.minXP).pop();
+          if (newLevel.level > prevLevel.level) unlocks.push({ type: 'level', data: newLevel, who: p.name });
+          const stats = getParticipantStats(u);
+          const newBadges = BADGES.filter(b => !(u.earnedBadges || []).includes(b.id) && b.condition(stats));
+          if (newBadges.length) { u = { ...u, earnedBadges: [...(u.earnedBadges || []), ...newBadges.map(b => b.id)] }; newBadges.forEach(b => unlocks.push({ type: 'badge', data: b, who: p.name })); }
+          const count = (u.completedActivities || []).length;
+          const avatarBadges = AVATAR_BADGES.filter(b => b.avatarId === u.avatar && !(u.avatarBadges || []).includes(b.id) && count >= b.threshold);
+          if (avatarBadges.length) { u = { ...u, avatarBadges: [...(u.avatarBadges || []), ...avatarBadges.map(b => b.id)] }; avatarBadges.forEach(b => unlocks.push({ type: 'badge', data: b, who: p.name })); }
+          names.push(p.name);
+          return u;
+        });
+        setParticipants(updated);
+        const now = new Date().toISOString();
+        setCompletionHistory(prev => [...prev, ...participants.filter(p => ids.includes(p.id)).map(p => ({ participantId: p.id, participantName: p.name, activityName: historyName, points, date: now }))]);
+        if (unlocks.length) setTimeout(() => setPopupQueue(q => [...q, ...unlocks]), opts.quiet ? 300 : 1700);
+        if (!opts.quiet) { setPointsPopup({ points, participantName: names.length > 1 ? 'Everyone' : names[0] }); setShowConfetti(true); setTimeout(() => setShowConfetti(false), 3000); }
+      };
+
+      const completeActivity = (activity, idOrIds, opts) => {
+        const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+        award(ids, activity.points, (u) => ({ ...u, completedActivities: [...(u.completedActivities || []), { activityId: activity.id, date: new Date().toISOString(), points: activity.points }] }), activity.name, opts);
+      };
+      const finishCourse = (bonus, doneCount) => {
+        const { course, playerIds } = courseRun;
+        setCourseRun(null); setView('dashboard');
+        if (doneCount === 0) return;
+        award(playerIds, bonus, (u) => ({ ...u, coursesCompleted: [...(u.coursesCompleted || []), course.id] }), `🏁 ${course.name} course`);
+      };
+
+      const toggleFavorite = (activityId) => setFavorites(prev => prev.includes(activityId) ? prev.filter(id => id !== activityId) : [...prev, activityId]);
+      const saveParticipant = (data) => { const existing = participants.find(p => p.id === data.id); if (existing) { setParticipants(prev => prev.map(p => p.id === data.id ? { ...p, ...data } : p)); } else { if (participants.length >= 4) return; setParticipants(prev => [...prev, data]); } };
       const deleteParticipant = (id) => setParticipants(prev => prev.filter(p => p.id !== id));
-      const toggleEquipment = (equipmentId) => setEquipment(prev => prev.includes(equipmentId) ? prev.filter(id => id !== equipmentId) : [...prev, equipmentId]);
+      const toggleEquipment = (id) => setEquipment(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
       const updateActivityNote = (activityId, note) => { setActivityNotes(prev => { if (!note || note.trim() === '') { const { [activityId]: removed, ...rest } = prev; return rest; } return { ...prev, [activityId]: note }; }); };
-      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => a.equipment.every(eq => equipment.includes(eq)) && (participants.length === 0 || participants.some(p => { const age = Number(p.age); return isNaN(age) || (age >= a.minAge && age <= a.maxAge); })));
-      const getFilteredActivities = () => { let filtered = ACTIVITY_LIBRARY; if (activityFilter !== 'all') filtered = filtered.filter(a => a.category === activityFilter); if (searchQuery) { const query = searchQuery.toLowerCase(); filtered = filtered.filter(a => a.name.toLowerCase().includes(query) || a.description.toLowerCase().includes(query)); } filtered.sort((a, b) => { const aHas = a.equipment.every(eq => equipment.includes(eq)); const bHas = b.equipment.every(eq => equipment.includes(eq)); return aHas === bHas ? 0 : aHas ? -1 : 1; }); return filtered; };
+      const getEligibleActivities = () => ACTIVITY_LIBRARY.filter(a => hasEquipmentFor(a, equipment) && (participants.length === 0 || participants.some(p => ageOk(a, p.age))));
+      const matchesFocus = (a) => { if (!focusFilter) return true; const [kind, id] = focusFilter.split(':'); return kind === 'm' ? a.muscles.includes(id) : kind === 's' ? a.skills.includes(id) : a.work.includes(id); };
+      const getFilteredActivities = () => {
+        let filtered = ACTIVITY_LIBRARY.filter(a => (activityFilter === 'all' || a.category === activityFilter) && matchesFocus(a));
+        if (searchQuery) { const q = searchQuery.toLowerCase(); filtered = filtered.filter(a => a.name.toLowerCase().includes(q) || a.description.toLowerCase().includes(q)); }
+        const usable = (a) => hasEquipmentFor(a, equipment) && (participants.length === 0 || participants.some(p => ageOk(a, p.age)));
+        return [...filtered].sort((a, b) => (usable(a) === usable(b) ? 0 : usable(a) ? -1 : 1));
+      };
+
+      const currentPopup = courseRun ? null : popupQueue[0]; // hold badge/level popups until a course ends
+      const closePopup = () => setPopupQueue(q => q.slice(1));
+      const runPlayers = courseRun ? participants.filter(p => courseRun.playerIds.includes(p.id)) : [];
+
+      const bigBtn = (color) => ({ padding: '18px', fontSize: '15px', border: `2px solid ${color}`, borderRadius: '12px', background: 'transparent', color, cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: `0 0 20px ${color}33` });
 
       const renderDashboard = () => (<div>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}><h1 style={{ fontSize: '38px', margin: '0 0 8px 0', fontFamily: 'Orbitron, sans-serif', background: 'linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ffff)', backgroundSize: '300% 100%', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', animation: 'shimmer 3s linear infinite' }}>🦖 HOME GYM ADVENTURE 🦋</h1><p style={{ color: '#888', margin: 0, fontFamily: 'Orbitron, sans-serif', fontSize: '14px', letterSpacing: '3px' }}>SPACE • DINOS • FITNESS</p></div>
-        {participants.length === 0 ? (<div className="neon-card" style={{ textAlign: 'center', padding: '50px', borderRadius: '20px', marginBottom: '24px' }}><div style={{ fontSize: '80px', marginBottom: '20px', animation: 'float 2s ease-in-out infinite' }}>🦕</div><h2 style={{ color: '#00ffff', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif' }}>NO PILOTS DETECTED!</h2><p style={{ color: '#888', marginBottom: '28px' }}>Register pilots in Command Center to begin.</p><button onClick={() => setView('settings')} className="arcade-btn" style={{ padding: '18px 40px', fontSize: '16px', border: '2px solid #00ffff', borderRadius: '30px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 30px rgba(0,255,255,0.3)' }}>COMMAND CENTER ⚙️</button></div>) : (<><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '32px' }}>{participants.map(p => <ParticipantCard key={p.id} participant={p} onClick={() => { setSelectedParticipant(p); setView('participant'); }} />)}</div><button onClick={() => setView('activities')} className="arcade-btn" style={{ width: '100%', padding: '22px', fontSize: '20px', border: '3px solid #ff00ff', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(255,0,255,0.1) 0%, rgba(255,0,128,0.1) 100%)', color: '#ff00ff', cursor: 'pointer', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 40px rgba(255,0,255,0.3)', letterSpacing: '3px' }}>🎯 LAUNCH MISSION!</button><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><button onClick={() => { const eligible = getEligibleActivities(); if (eligible.length > 0) { setShowWheel(true); } else { alert('No missions available!'); } }} className="arcade-btn" style={{ padding: '18px', fontSize: '15px', border: '2px solid #00ffff', borderRadius: '12px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 20px rgba(0,255,255,0.2)' }}>🎲 RANDOM</button><button onClick={() => setView('favorites')} className="arcade-btn" style={{ padding: '18px', fontSize: '15px', border: '2px solid #ff0080', borderRadius: '12px', background: 'transparent', color: '#ff0080', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 20px rgba(255,0,128,0.2)' }}>💖 FAVORITES ({favorites.length})</button></div></>)}
+        {participants.length === 0 ? (<div className="neon-card" style={{ textAlign: 'center', padding: '50px', borderRadius: '20px', marginBottom: '24px' }}><div style={{ fontSize: '80px', marginBottom: '20px', animation: 'float 2s ease-in-out infinite' }}>🦕</div><h2 style={{ color: '#00ffff', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif' }}>NO PILOTS DETECTED!</h2><p style={{ color: '#888', marginBottom: '28px' }}>Register pilots in Command Center to begin.</p><button onClick={() => setView('settings')} className="arcade-btn" style={{ padding: '18px 40px', fontSize: '16px', border: '2px solid #00ffff', borderRadius: '30px', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 30px rgba(0,255,255,0.3)' }}>COMMAND CENTER ⚙️</button></div>) : (<>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '32px' }}>{participants.map(p => <ParticipantCard key={p.id} participant={p} onClick={() => { setSelectedParticipant(p); setView('participant'); }} />)}</div>
+          <button onClick={() => setView('courses')} className="arcade-btn" style={{ width: '100%', padding: '22px', fontSize: '20px', border: '3px solid #00ff80', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(0,255,128,0.1) 0%, rgba(0,255,255,0.1) 100%)', color: '#00ff80', cursor: 'pointer', marginBottom: '14px', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 40px rgba(0,255,128,0.3)', letterSpacing: '3px' }}>🧭 START A COURSE</button>
+          <button onClick={() => setView('activities')} className="arcade-btn" style={{ width: '100%', padding: '18px', fontSize: '17px', border: '3px solid #ff00ff', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(255,0,255,0.1) 0%, rgba(255,0,128,0.1) 100%)', color: '#ff00ff', cursor: 'pointer', marginBottom: '14px', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 30px rgba(255,0,255,0.3)', letterSpacing: '3px' }}>🎯 PICK A MISSION</button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <button onClick={() => { if (getEligibleActivities().length > 0) setShowWheel(true); else setView('settings'); }} className="arcade-btn" style={bigBtn('#00ffff')}>🎲 RANDOM</button>
+            <button onClick={() => setView('favorites')} className="arcade-btn" style={bigBtn('#ff0080')}>💖 FAVORITES ({favorites.length})</button>
+          </div></>)}
         {completionHistory.length > 0 && (<div style={{ marginTop: '32px' }}><h2 style={{ color: '#00ffff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>📜 MISSION LOG</h2><div className="neon-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>{completionHistory.slice(-5).reverse().map((entry, idx) => (<div key={idx} style={{ padding: '16px', borderBottom: idx < 4 ? '1px solid #222' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ color: '#aaa' }}><strong style={{ color: '#fff' }}>{entry.participantName}</strong> completed <span style={{ color: '#00ffff' }}>{entry.activityName}</span></div><span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(0,255,0,0.1)', color: '#00ff00', fontSize: '14px', fontWeight: 'bold', border: '1px solid #00ff00', fontFamily: 'Orbitron, sans-serif' }}>+{entry.points}</span></div>))}</div></div>)}
       </div>);
 
-      const renderActivities = () => (<div>
-        <h1 style={{ fontSize: '28px', margin: '0 0 16px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>🎯 SELECT MISSION</h1>
-        <input type="text" placeholder="Search missions..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '14px 20px', fontSize: '16px', border: '2px solid #00ffff', borderRadius: '12px', marginBottom: '16px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} />
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>{['all', 'jump', 'balance', 'strength', 'dance', 'obstacle', 'target', 'yoga', 'game', 'cooldown'].map(cat => (<button key={cat} onClick={() => setActivityFilter(cat)} style={{ padding: '8px 16px', borderRadius: '20px', border: activityFilter === cat ? '2px solid #00ffff' : '1px solid #444', background: activityFilter === cat ? 'rgba(0,255,255,0.1)' : 'transparent', color: activityFilter === cat ? '#00ffff' : '#888', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', textTransform: 'uppercase', boxShadow: activityFilter === cat ? '0 0 15px rgba(0,255,255,0.3)' : 'none' }}>{cat === 'all' ? '🌟 ALL' : cat}</button>))}</div>
-        {getFilteredActivities().map(activity => (<ActivityCard key={activity.id} activity={activity} isFavorite={favorites.includes(activity.id)} onToggleFavorite={toggleFavorite} onComplete={completeActivity} availableEquipment={equipment} participants={participants} activityNotes={activityNotes} onUpdateNote={updateActivityNote} />))}
-      </div>);
+      const renderActivities = () => {
+        const list = getFilteredActivities();
+        return (<div>
+          <h1 style={{ fontSize: '28px', margin: '0 0 16px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>🎯 SELECT MISSION</h1>
+          <input type="text" placeholder="Search missions..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: '100%', padding: '14px 20px', fontSize: '16px', border: '2px solid #00ffff', borderRadius: '12px', marginBottom: '12px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.5)', color: '#fff' }} />
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+            <select value={focusFilter} onChange={(e) => setFocusFilter(e.target.value)} style={{ flex: 1, minWidth: '200px', padding: '12px', fontSize: '15px', borderRadius: '12px', border: '2px solid #ff8000', background: '#111122', color: focusFilter ? '#ff8000' : '#aaa' }}>
+              <option value="">🎯 Any focus (muscle, skill, work type)</option>
+              <optgroup label="Muscles">{Object.entries(MUSCLES).map(([id, m]) => <option key={id} value={`m:${id}`}>{m.emoji} {m.label}</option>)}</optgroup>
+              <optgroup label="Skills">{Object.entries(SKILLS).map(([id, s]) => <option key={id} value={`s:${id}`}>{s.emoji} {s.label}</option>)}</optgroup>
+              <optgroup label="Muscle work">{Object.entries(WORK_TYPES).map(([id, w]) => <option key={id} value={`w:${id}`}>{w.emoji} {w.label}</option>)}</optgroup>
+            </select>
+            <button onClick={() => setShowLegend(s => !s)} style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid #444', background: 'transparent', color: '#aaa', cursor: 'pointer' }}>{showLegend ? 'Hide' : '❓ What do the labels mean?'}</button>
+          </div>
+          {showLegend && <WorkLegend />}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>{CATEGORIES.map(cat => (<button key={cat.id} onClick={() => setActivityFilter(cat.id)} style={{ padding: '8px 14px', borderRadius: '20px', border: activityFilter === cat.id ? '2px solid #00ffff' : '1px solid #444', background: activityFilter === cat.id ? 'rgba(0,255,255,0.1)' : 'transparent', color: activityFilter === cat.id ? '#00ffff' : '#888', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: activityFilter === cat.id ? '0 0 15px rgba(0,255,255,0.3)' : 'none' }}>{cat.label}</button>))}</div>
+          <div style={{ color: '#666', fontSize: '13px', marginBottom: '12px' }}>{list.length} missions</div>
+          {list.map(activity => (<ActivityCard key={activity.id} activity={activity} isFavorite={favorites.includes(activity.id)} onToggleFavorite={toggleFavorite} onComplete={completeActivity} availableEquipment={equipment} participants={participants} activityNotes={activityNotes} onUpdateNote={updateActivityNote} />))}
+        </div>);
+      };
 
       const renderFavorites = () => { const favoriteActivities = ACTIVITY_LIBRARY.filter(a => favorites.includes(a.id)); return (<div><h1 style={{ fontSize: '28px', margin: '0 0 24px 0', color: '#00ffff', fontFamily: 'Orbitron, sans-serif', textShadow: '0 0 20px #00ffff' }}>💖 FAVORITE MISSIONS</h1>{favoriteActivities.length === 0 ? (<div className="neon-card" style={{ textAlign: 'center', padding: '50px', borderRadius: '16px' }}><div style={{ fontSize: '64px', marginBottom: '16px' }}>💔</div><h2 style={{ color: '#ff0080', marginBottom: '8px', fontFamily: 'Orbitron, sans-serif' }}>NO FAVORITES YET!</h2><p style={{ color: '#888' }}>Tap the heart on missions to save them here.</p></div>) : favoriteActivities.map(activity => (<ActivityCard key={activity.id} activity={activity} isFavorite={true} onToggleFavorite={toggleFavorite} onComplete={completeActivity} availableEquipment={equipment} participants={participants} activityNotes={activityNotes} onUpdateNote={updateActivityNote} />))}</div>); };
 
@@ -395,38 +822,50 @@
         const nextLevel = LEVELS.find(l => l.minXP > participant.xp);
         const progressToNext = nextLevel ? ((participant.xp - currentLevel.minXP) / (nextLevel.minXP - currentLevel.minXP)) * 100 : 100;
         const stats = getParticipantStats(participant);
+        const tier = getTier(participant.age);
         const avatarSpecificBadges = AVATAR_BADGES.filter(b => b.avatarId === participant.avatar);
+        // What this player has trained most (muscle groups)
+        const muscleCounts = {};
+        (participant.completedActivities || []).forEach(c => (getActivity(c.activityId)?.muscles || []).forEach(m => { muscleCounts[m] = (muscleCounts[m] || 0) + 1; }));
+        const topMuscles = Object.entries(muscleCounts).sort((a, b) => b[1] - a[1]);
+        const maxCount = topMuscles[0]?.[1] || 1;
+        const statBox = (emoji, value, label, c) => (<div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: c }}><div style={{ fontSize: '28px', marginBottom: '4px' }}>{emoji}</div><div style={{ fontSize: '22px', fontWeight: 'bold', color: c, fontFamily: 'Orbitron, sans-serif' }}>{value}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>{label}</div></div>);
 
         return (<div>
           <div style={{ background: 'linear-gradient(135deg, rgba(10,10,30,0.95) 0%, rgba(20,20,50,0.95) 100%)', border: `3px solid ${color.primary}`, borderRadius: '24px', padding: '32px', textAlign: 'center', marginBottom: '24px', boxShadow: `0 0 50px ${color.primary}40` }}>
             <div style={{ width: '110px', height: '110px', borderRadius: '50%', backgroundColor: `${color.primary}20`, border: `3px solid ${color.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', margin: '0 auto 16px', boxShadow: `0 0 30px ${color.primary}60`, animation: 'float 3s ease-in-out infinite' }}>{avatar?.emoji}</div>
             <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontFamily: 'Orbitron, sans-serif', color: color.primary, textShadow: `0 0 20px ${color.primary}` }}>{participant.name}</h1>
-            <div style={{ fontSize: '16px', color: '#888', marginBottom: '20px' }}>Age {participant.age} • {avatar?.name}</div>
+            <div style={{ fontSize: '16px', color: '#888', marginBottom: '6px' }}>Age {participant.age} • {avatar?.name}</div>
+            <div style={{ fontSize: '14px', color: tier.color, marginBottom: '20px', fontFamily: 'Orbitron, sans-serif' }}>{tier.emoji} {tier.label.toUpperCase()} TIER — targets for ages {tier.ages}</div>
             <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '20px', border: `1px solid ${color.primary}40` }}><div style={{ fontSize: '28px', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif' }}><span style={{ marginRight: '8px' }}>{currentLevel?.emoji}</span><span style={{ color: '#ffff00', textShadow: '0 0 10px #ffff00' }}>{currentLevel?.name}</span></div><div style={{ marginBottom: '8px' }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px', fontFamily: 'Orbitron, sans-serif' }}><span style={{ color: color.primary }}>{participant.xp} XP</span>{nextLevel && <span style={{ color: '#666' }}>{nextLevel.minXP} XP</span>}</div><div style={{ height: '10px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden', border: `1px solid ${color.primary}40` }}><div style={{ height: '100%', width: `${progressToNext}%`, background: color.gradient, borderRadius: '5px', boxShadow: `0 0 15px ${color.primary}` }} /></div></div>{nextLevel && <div style={{ fontSize: '13px', color: '#888' }}>{nextLevel.minXP - participant.xp} XP to {nextLevel.name}</div>}</div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}><div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: '#00ffff' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>🏆</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#00ffff', fontFamily: 'Orbitron, sans-serif' }}>{stats.totalCompleted}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>Completed</div></div><div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: '#ffff00' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>⭐</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffff00', fontFamily: 'Orbitron, sans-serif' }}>{participant.xp}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>Total XP</div></div><div className="neon-card" style={{ borderRadius: '12px', padding: '16px', textAlign: 'center', borderColor: '#ff00ff' }}><div style={{ fontSize: '32px', marginBottom: '4px' }}>🏅</div><div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff00ff', fontFamily: 'Orbitron, sans-serif' }}>{(participant.earnedBadges?.length || 0) + (participant.avatarBadges?.length || 0)}</div><div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase' }}>Badges</div></div></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '24px' }}>{statBox('🏆', stats.totalCompleted, 'Completed', '#00ffff')}{statBox('⭐', participant.xp, 'Total XP', '#ffff00')}{statBox('🏁', stats.coursesCompleted, 'Courses', '#00ff80')}{statBox('🏅', (participant.earnedBadges?.length || 0) + (participant.avatarBadges?.length || 0), 'Badges', '#ff00ff')}</div>
+          {topMuscles.length > 0 && (<div className="neon-card" style={{ borderRadius: '16px', padding: '18px', marginBottom: '24px', borderColor: '#ff8000' }}><h2 style={{ color: '#ff8000', fontFamily: 'Orbitron, sans-serif', fontSize: '16px', marginBottom: '12px' }}>💪 MUSCLES TRAINED</h2>{topMuscles.map(([m, n]) => (<div key={m} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}><div style={{ width: '130px', color: '#ccc', fontSize: '13px' }}>{MUSCLES[m].emoji} {MUSCLES[m].label}</div><div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${(n / maxCount) * 100}%`, height: '100%', background: '#ff8000', borderRadius: '4px' }} /></div><div style={{ width: '28px', textAlign: 'right', color: '#888', fontSize: '12px' }}>{n}</div></div>))}</div>)}
           <h2 style={{ color: '#ff00ff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>🏅 BADGES</h2>
-          <div style={{ marginBottom: '16px' }}><h3 style={{ color: '#00ffff', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif', fontSize: '14px' }}>{avatar?.emoji} {avatar?.name.toUpperCase()} PROGRESSION</h3><div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>{avatarSpecificBadges.map(badge => { const earned = participant.avatarBadges?.includes(badge.id); return (<div key={badge.id} title={`${badge.name}: ${badge.description}`} className="neon-card" style={{ borderRadius: '12px', padding: '12px', textAlign: 'center', flex: '1', opacity: earned ? 1 : 0.3, borderColor: earned ? color.primary : '#333', boxShadow: earned ? `0 0 20px ${color.primary}40` : 'none' }}><div style={{ fontSize: '32px', filter: earned ? `drop-shadow(0 0 10px ${color.primary})` : 'grayscale(100%)' }}>{badge.emoji}</div><div style={{ fontSize: '10px', color: earned ? color.primary : '#666', marginTop: '4px', fontFamily: 'Orbitron, sans-serif' }}>{badge.name}</div><div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>({badge.threshold}x)</div></div>); })}</div></div>
+          <div style={{ marginBottom: '16px' }}><h3 style={{ color: '#00ffff', marginBottom: '12px', fontFamily: 'Orbitron, sans-serif', fontSize: '14px' }}>{avatar?.emoji} {avatar?.name.toUpperCase()} PROGRESSION</h3><div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>{avatarSpecificBadges.map(badge => { const earned = participant.avatarBadges?.includes(badge.id); return (<div key={badge.id} title={`${badge.name}: ${badge.description}`} className="neon-card" style={{ borderRadius: '12px', padding: '12px', textAlign: 'center', flex: '1', opacity: earned ? 1 : 0.3, borderColor: earned ? color.primary : '#333' }}><div style={{ fontSize: '32px', filter: earned ? `drop-shadow(0 0 10px ${color.primary})` : 'grayscale(100%)' }}>{badge.emoji}</div><div style={{ fontSize: '10px', color: earned ? color.primary : '#666', marginTop: '4px', fontFamily: 'Orbitron, sans-serif' }}>{badge.name}</div><div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>({badge.threshold}x)</div></div>); })}</div></div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(75px, 1fr))', gap: '10px', marginBottom: '24px' }}>{BADGES.map(badge => { const earned = participant.earnedBadges?.includes(badge.id); return (<div key={badge.id} title={`${badge.name}: ${badge.description}`} className="neon-card" style={{ borderRadius: '12px', padding: '10px', textAlign: 'center', opacity: earned ? 1 : 0.25, borderColor: earned ? '#00ffff' : '#333' }}><div style={{ fontSize: '28px', filter: earned ? 'drop-shadow(0 0 8px #00ffff)' : 'grayscale(100%)' }}>{badge.emoji}</div><div style={{ fontSize: '9px', color: earned ? '#00ffff' : '#666', marginTop: '4px' }}>{badge.name}</div></div>); })}</div>
-          {participant.completedActivities?.length > 0 && (<><h2 style={{ color: '#00ffff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>📜 RECENT MISSIONS</h2><div className="neon-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>{participant.completedActivities.slice(-5).reverse().map((completion, idx) => { const activity = ACTIVITY_LIBRARY.find(a => a.id === completion.activityId); return (<div key={idx} style={{ padding: '16px', borderBottom: idx < participant.completedActivities.slice(-5).length - 1 ? '1px solid #222' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><div style={{ fontWeight: 'bold', color: '#fff' }}>{activity?.name}</div><div style={{ fontSize: '12px', color: '#666' }}>{new Date(completion.date).toLocaleDateString()}</div></div><span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(0,255,0,0.1)', color: '#00ff00', fontSize: '14px', fontWeight: 'bold', border: '1px solid #00ff00', fontFamily: 'Orbitron, sans-serif' }}>+{completion.points}</span></div>); })}</div></>)}
+          {participant.completedActivities?.length > 0 && (<><h2 style={{ color: '#00ffff', marginBottom: '16px', fontFamily: 'Orbitron, sans-serif' }}>📜 RECENT MISSIONS</h2><div className="neon-card" style={{ borderRadius: '16px', overflow: 'hidden' }}>{participant.completedActivities.slice(-5).reverse().map((completion, idx, arr) => { const activity = getActivity(completion.activityId); return (<div key={idx} style={{ padding: '16px', borderBottom: idx < arr.length - 1 ? '1px solid #222' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><div style={{ fontWeight: 'bold', color: '#fff' }}>{activity?.name}</div><div style={{ fontSize: '12px', color: '#666' }}>{new Date(completion.date).toLocaleDateString()}</div></div><span style={{ padding: '4px 12px', borderRadius: '12px', backgroundColor: 'rgba(0,255,0,0.1)', color: '#00ff00', fontSize: '14px', fontWeight: 'bold', border: '1px solid #00ff00', fontFamily: 'Orbitron, sans-serif' }}>+{completion.points}</span></div>); })}</div></>)}
         </div>);
       };
 
       return (<div style={{ minHeight: '100vh', position: 'relative', zIndex: 2 }}>
         <StarField /><div className="grid-overlay" /><div className="scanlines" />
         <Confetti active={showConfetti} />
-        <BadgePopup badge={newBadge} onClose={() => setNewBadge(null)} />
-        <LevelUpPopup level={newLevel} onClose={() => setNewLevel(null)} />
+        {currentPopup?.type === 'badge' && <BadgePopup badge={{ ...currentPopup.data, description: `${currentPopup.who}: ${currentPopup.data.description}` }} onClose={closePopup} />}
+        {currentPopup?.type === 'level' && <LevelUpPopup level={{ ...currentPopup.data, name: `${currentPopup.who} → ${currentPopup.data.name}` }} onClose={closePopup} />}
         {pointsPopup && <PointsPopup points={pointsPopup.points} participantName={pointsPopup.participantName} onClose={() => setPointsPopup(null)} />}
-        {showWheel && <SpinningWheel activities={getEligibleActivities()} onComplete={(activity) => { setShowWheel(false); setSearchQuery(activity.name); setActivityFilter('all'); setView('activities'); }} onClose={() => setShowWheel(false)} />}
+        {showWheel && <SpinningWheel activities={getEligibleActivities()} onComplete={(activity) => { setShowWheel(false); setSearchQuery(activity.name); setActivityFilter('all'); setFocusFilter(''); setView('activities'); }} onClose={() => setShowWheel(false)} />}
+        {courseSetup && <CourseSetup course={courseSetup} participants={participants} equipment={equipment} onClose={() => setCourseSetup(null)} onStart={(steps, playerIds) => { setCourseRun({ course: courseSetup, steps, playerIds }); setCourseSetup(null); }} />}
+        {courseRun && <CourseRunner course={courseRun.course} steps={courseRun.steps} players={runPlayers} onStepDone={(activity, ids) => completeActivity(activity, ids, { quiet: true })} onFinish={finishCourse} onExit={() => setCourseRun(null)} />}
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 3 }}>
           {view !== 'dashboard' && (<button onClick={() => { setView('dashboard'); setSelectedParticipant(null); setSearchQuery(''); }} style={{ marginBottom: '16px', padding: '10px 20px', borderRadius: '25px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 15px rgba(0,255,255,0.2)' }}>← BACK</button>)}
           {view === 'dashboard' && renderDashboard()}
           {view === 'activities' && renderActivities()}
+          {view === 'courses' && <CoursesView equipment={equipment} participants={participants} onPick={setCourseSetup} />}
           {view === 'favorites' && renderFavorites()}
           {view === 'settings' && <Settings participants={participants} equipment={equipment} activityNotes={activityNotes} onSaveParticipant={saveParticipant} onDeleteParticipant={deleteParticipant} onToggleEquipment={toggleEquipment} />}
           {view === 'participant' && renderParticipantDetail()}
-          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(10,10,26,0.98) 0%, rgba(10,10,26,0.95) 100%)', borderTop: '2px solid #00ffff', display: 'flex', justifyContent: 'space-around', padding: '12px 0', boxShadow: '0 -5px 30px rgba(0,255,255,0.2)', zIndex: 100 }}>{[{ id: 'dashboard', icon: '🏠', label: 'HOME' }, { id: 'activities', icon: '🎯', label: 'MISSIONS' }, { id: 'favorites', icon: '💖', label: 'FAVS' }, { id: 'settings', icon: '⚙️', label: 'COMMAND' }].map(nav => (<button key={nav.id} onClick={() => { setView(nav.id); setSelectedParticipant(null); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', color: view === nav.id ? '#00ffff' : '#666' }}><span style={{ fontSize: '24px', filter: view === nav.id ? 'drop-shadow(0 0 10px #00ffff)' : 'none' }}>{nav.icon}</span><span style={{ fontSize: '10px', fontWeight: view === nav.id ? 'bold' : 'normal', fontFamily: 'Orbitron, sans-serif', letterSpacing: '1px' }}>{nav.label}</span></button>))}</div>
+          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(10,10,26,0.98) 0%, rgba(10,10,26,0.95) 100%)', borderTop: '2px solid #00ffff', display: 'flex', justifyContent: 'space-around', padding: '10px 0', boxShadow: '0 -5px 30px rgba(0,255,255,0.2)', zIndex: 100 }}>{[{ id: 'dashboard', icon: '🏠', label: 'HOME' }, { id: 'courses', icon: '🧭', label: 'COURSES' }, { id: 'activities', icon: '🎯', label: 'MISSIONS' }, { id: 'favorites', icon: '💖', label: 'FAVS' }, { id: 'settings', icon: '⚙️', label: 'COMMAND' }].map(nav => (<button key={nav.id} onClick={() => { setView(nav.id); setSelectedParticipant(null); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 10px', border: 'none', background: 'none', cursor: 'pointer', color: view === nav.id ? '#00ffff' : '#666' }}><span style={{ fontSize: '22px', filter: view === nav.id ? 'drop-shadow(0 0 10px #00ffff)' : 'none' }}>{nav.icon}</span><span style={{ fontSize: '10px', fontWeight: view === nav.id ? 'bold' : 'normal', fontFamily: 'Orbitron, sans-serif', letterSpacing: '1px' }}>{nav.label}</span></button>))}</div>
           <div style={{ height: '90px' }} />
         </div>
       </div>);
