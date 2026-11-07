@@ -16,7 +16,7 @@ A gamified home-gym app for families — built for kids ages 9–14 (parents wel
 
 ## Equipment Supported
 
-Saucer cones, foam balls, plyo boxes (6"/12"/18"), Bosu ball, yoga mat, yoga blocks, light weights, balance beam, ballet barre, stepping stones, **agility ladder**, blankets, music and room lights. Many exercises need no equipment at all.
+Saucer cones, foam balls, plyo boxes (6"/12"/18"), Bosu ball, yoga mat, yoga blocks, light weights, balance beam, ballet barre, stepping stones, **agility ladder**, and blankets. Many exercises need no equipment at all — music and room lights are assumed, not required.
 
 ## How to Use
 

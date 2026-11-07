@@ -178,7 +178,7 @@
       { id: 'weights', name: 'Light Weights', emoji: '🏋️' }, { id: 'balance_beam', name: 'Balance Beam', emoji: '➖' },
       { id: 'barre', name: 'Ballet Barre', emoji: '🩰' }, { id: 'stepping_stones', name: 'Stepping Stones', emoji: '🪨' },
       { id: 'agility_ladder', name: 'Agility Ladder', emoji: '🪜' },
-      { id: 'blankets', name: 'Blankets', emoji: '🛏️' }, { id: 'spotify', name: 'Music', emoji: '🎵' }, { id: 'lights', name: 'Lights', emoji: '💡' },
+      { id: 'blankets', name: 'Blankets', emoji: '🛏️' },
     ];
 
     // X(id, name, category, intensity, points, seconds, equipment, muscles, skills, work, description, [rookie, pro, elite], extra)
@@ -211,7 +211,7 @@
       X(59, 'Hallway Sprints', 'cardio', 'Hard', 25, 90, [], ['quads', 'hamstrings', 'calves', 'heart'], ['agility'], ['blast', 'engine'], 'Sprint the longest clear stretch you have, touch the floor, walk back. (No space? Sprint in place 10 seconds.)', ['5 sprints', '8 sprints', '10 sprints, touch the floor at both ends']),
       X(60, 'High-Knee Countdown', 'cardio', 'Medium', 20, 120, [], ['quads', 'core', 'heart'], ['coordination'], ['engine'], 'Run in place driving your knees up to hip height. Rest between rounds.', ['3 rounds: 20 sec on / 20 sec off', '4 rounds: 30 on / 20 off', '6 rounds: 30 on / 15 off']),
       X(64, 'Jumping Jack Ladder', 'cardio', 'Easy', 15, 60, [], ['calves', 'shoulders', 'heart'], ['coordination', 'rhythm'], ['engine'], 'Classic jumping jacks — arms all the way up, feet wide.', ['30 jacks', '50 jacks', '75 jacks (or 3 × 25 seal jacks)']),
-      X(21, 'Disco Lights Workout', 'cardio', 'Medium', 30, 240, ['spotify', 'lights'], ['quads', 'heart'], ['rhythm', 'reaction'], ['engine'], 'Lights on = fast moves (jacks, high knees). Lights off = slow-mo squats. Someone runs the switch!', ['3 minutes', '4 minutes', '5 minutes, add burpees on the drop'], { tags: ['team'] }),
+      X(21, 'Disco Lights Workout', 'cardio', 'Medium', 30, 240, [], ['quads', 'heart'], ['rhythm', 'reaction'], ['engine'], 'Lights on = fast moves (jacks, high knees). Lights off = slow-mo squats. Someone runs the switch!', ['3 minutes', '4 minutes', '5 minutes, add burpees on the drop'], { tags: ['team'] }),
 
       // ---------- CORE ----------
       X(46, 'Rocket Sit-Ups', 'core', 'Medium', 20, 60, [], ['core'], [], ['strength'], 'Lie back with knees bent, feet anchored. Curl all the way up, lower slowly.', ['10 sit-ups, feet tucked under a couch', '15 sit-ups', '25 sit-ups, arms crossed on chest']),
@@ -250,11 +250,11 @@
       X(82, 'Pillow Balance', 'balance', 'Medium', 20, 60, ['blankets'], ['calves', 'core'], ['balance', 'proprio'], ['hold'], 'Stand on one leg on a folded blanket or pillow — wobbly ground makes your ankles smarter.', ['20 sec each leg', '30 sec each leg + 5 mini squats', '45 sec each leg, toss a ball hand to hand']),
 
       // ---------- DANCE ----------
-      X(18, 'Dino Dance Party', 'dance', 'Easy', 25, 180, ['spotify'], ['quads', 'heart'], ['rhythm', 'coordination'], ['engine'], 'Dance like different dinosaurs to the music — switch dino when someone calls it.', ['1 song, switch every 30 sec', '2 songs', '2 songs nonstop — no standing still'], { tags: ['team'] }),
-      X(19, 'Freeze Dance', 'dance', 'Easy', 25, 180, ['spotify'], ['quads', 'core', 'heart'], ['rhythm', 'reaction', 'balance'], ['engine', 'hold'], 'Dance when the music plays, freeze when it stops. Wobble = 5 jumping jacks!', ['Freeze in any pose', 'Freeze in a wall-sit squat', 'Freeze in a plank or one-leg balance'], { tags: ['team'] }),
+      X(18, 'Dino Dance Party', 'dance', 'Easy', 25, 180, [], ['quads', 'heart'], ['rhythm', 'coordination'], ['engine'], 'Put on music! Dance like different dinosaurs — switch dino when someone calls it.', ['1 song, switch every 30 sec', '2 songs', '2 songs nonstop — no standing still'], { tags: ['team'] }),
+      X(19, 'Freeze Dance', 'dance', 'Easy', 25, 180, [], ['quads', 'core', 'heart'], ['rhythm', 'reaction', 'balance'], ['engine', 'hold'], 'Dance when the music plays, freeze when it stops. Wobble = 5 jumping jacks!', ['Freeze in any pose', 'Freeze in a wall-sit squat', 'Freeze in a plank or one-leg balance'], { tags: ['team'] }),
       X(20, 'Ballet Pliés & Relevés', 'dance', 'Easy', 20, 90, ['barre'], ['quads', 'glutes', 'calves'], ['balance', 'proprio'], ['strength'], 'Hold the barre: deep plié (knees out over toes), then rise onto your toes.', ['10 pliés', '15 pliés + 10 relevés', '20 pliés with 3-sec hold + 20 relevés']),
-      X(79, 'Choreo Challenge', 'dance', 'Medium', 25, 240, ['spotify'], ['quads', 'heart'], ['rhythm', 'coordination'], ['engine'], 'Learn a short dance (make one up or copy a video) one 8-count at a time, then perform it.', ['Learn 1 eight-count', 'Learn 2 eight-counts', 'Learn 4 eight-counts and perform it full-out'], { tags: ['team'] }),
-      X(80, 'Mirror Moves', 'dance', 'Easy', 20, 120, ['spotify'], ['shoulders', 'quads'], ['coordination', 'reaction', 'rhythm'], ['engine'], 'Face a partner. The leader dances slowly, the mirror copies exactly. Switch leaders each minute.', ['1 minute each', '2 minutes each, faster', '2 minutes each, add jumps and turns'], { tags: ['team'] }),
+      X(79, 'Choreo Challenge', 'dance', 'Medium', 25, 240, [], ['quads', 'heart'], ['rhythm', 'coordination'], ['engine'], 'Put on a song. Learn a short dance (make one up or copy a video) one 8-count at a time, then perform it.', ['Learn 1 eight-count', 'Learn 2 eight-counts', 'Learn 4 eight-counts and perform it full-out'], { tags: ['team'] }),
+      X(80, 'Mirror Moves', 'dance', 'Easy', 20, 120, [], ['shoulders', 'quads'], ['coordination', 'reaction', 'rhythm'], ['engine'], 'Put on music and face a partner. The leader dances slowly, the mirror copies exactly. Switch leaders each minute.', ['1 minute each', '2 minutes each, faster', '2 minutes each, add jumps and turns'], { tags: ['team'] }),
 
       // ---------- OBSTACLE ----------
       X(22, 'Jungle Expedition', 'obstacle', 'Medium', 40, 180, ['plyo_6', 'cones', 'balance_beam'], ['quads', 'glutes', 'heart'], ['balance', 'agility'], ['engine', 'blast'], 'Jump the box, weave the cones, cross the beam — that’s one round.', ['2 rounds', '3 rounds', '4 rounds, timed']),
@@ -285,7 +285,7 @@
       X(33, 'Hot Lava Floor', 'game', 'Medium', 30, 180, ['stepping_stones', 'balance_beam', 'plyo_6'], ['quads', 'calves', 'heart'], ['balance', 'agility'], ['blast'], 'The floor is lava! Get around the room using only equipment.', ['Free play, 3 min', 'Timed lap, no touching the floor', 'Timed lap carrying a ball, 3 laps'], { tags: ['team'] }),
       X(34, 'Animal Charades Workout', 'game', 'Easy', 25, 240, [], ['quads', 'shoulders', 'heart'], ['coordination'], ['engine'], 'Act out an animal with a matching exercise (frog = jump squats, bear = crawls). Others guess!', ['5 animals, 8 reps each', '8 animals, 10 reps each', '10 animals, 12 reps each, no breaks'], { tags: ['team'] }),
       X(35, 'Simon Says Speed Round', 'game', 'Easy', 20, 180, [], ['quads', 'core', 'heart'], ['reaction'], ['quick'], 'Simon Says with exercise commands — get faster and trickier each round.', ['2 minutes', '3 minutes, faster commands', '4 minutes with trick commands'], { tags: ['team'] }),
-      X(36, 'Musical Stepping Stones', 'game', 'Easy', 25, 180, ['stepping_stones', 'spotify'], ['calves', 'quads'], ['balance', 'reaction'], ['hold'], 'Walk the stones while music plays; freeze when it stops. Remove a stone each round.', ['3 rounds', '5 rounds', '5 rounds, freeze on one leg'], { tags: ['team'] }),
+      X(36, 'Musical Stepping Stones', 'game', 'Easy', 25, 180, ['stepping_stones'], ['calves', 'quads'], ['balance', 'reaction'], ['hold'], 'Walk the stones while music plays; freeze when it stops. Remove a stone each round.', ['3 rounds', '5 rounds', '5 rounds, freeze on one leg'], { tags: ['team'] }),
       X(37, 'Blanket Fort Circuit', 'game', 'Easy', 25, 240, ['blankets'], ['shoulders', 'core', 'quads'], ['coordination'], ['strength', 'engine'], 'Build a fort; each time you crawl through, do a challenge inside (10 crunches, 5 push-ups…).', ['3 trips', '5 trips', '8 trips'], { tags: ['team'] }),
       X(38, 'Treasure Hunt Workout', 'game', 'Easy', 30, 300, ['foam_balls'], ['quads', 'heart'], ['agility'], ['engine'], 'Hide the balls. Every ball found = an exercise before you hunt again.', ['5 balls, 10 jumping jacks each', '8 balls, 10 squats each', '10 balls, 5 burpees each'], { tags: ['team'] }),
 
@@ -552,17 +552,22 @@
             <div style={{ fontSize: '34px', marginBottom: '6px' }}>{course.emoji}</div>
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold', color: course.color, fontSize: '16px', marginBottom: '4px' }}>{course.name}</div>
             <div style={{ color: '#aaa', fontSize: '13px', marginBottom: '8px' }}>{course.description}</div>
-            <div style={{ fontSize: '12px', color: enough ? '#888' : '#ff8000' }}>{course.count} exercises · {n} available with your equipment</div>
+            <div style={{ fontSize: '12px', color: enough ? '#888' : '#ff8000' }}>{n === 0 ? 'Needs equipment — tap to see what' : `${course.count} exercises · ${n} available with your gear`}</div>
           </button>); })}
       </div>
     </div>);
 
     // ===== COURSES: setup (pick players, preview steps) =====
-    const CourseSetup = ({ course, participants, equipment, onStart, onClose }) => {
+    const CourseSetup = ({ course, participants, equipment, onToggleEquipment, onStart, onClose }) => {
       const [playerIds, setPlayerIds] = useState(participants.map(p => p.id));
       const players = participants.filter(p => playerIds.includes(p.id));
       const [steps, setSteps] = useState(() => buildCourseSteps(course, equipment, participants));
-      useEffect(() => { setSteps(buildCourseSteps(course, equipment, players)); }, [playerIds.join(',')]);
+      useEffect(() => { setSteps(buildCourseSteps(course, equipment, players)); }, [playerIds.join(','), equipment.join(',')]);
+      // Which missing gear would unlock more of this course?
+      const poolIds = course.slots ? [...new Set(course.slots.flat())] : course.pool;
+      const unlocks = {};
+      poolIds.map(getActivity).filter(a => a && !hasEquipmentFor(a, equipment)).forEach(a => a.equipment.filter(eq => !equipment.includes(eq)).forEach(eq => { unlocks[eq] = (unlocks[eq] || 0) + 1; }));
+      const unlockList = Object.entries(unlocks).sort((a, b) => b[1] - a[1]);
       const total = steps.reduce((s, a) => s + a.durationSec, 0) + steps.length * 15;
       const toggle = (id) => setPlayerIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
       return (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 1001, overflowY: 'auto', padding: '20px' }}>
@@ -572,9 +577,10 @@
           <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#888', marginBottom: '8px' }}>WHO'S PLAYING?</div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>{participants.map(p => { const on = playerIds.includes(p.id); const av = AVATARS.find(a => a.id === p.avatar); const color = COLOR_OPTIONS.find(c => c.id === p.color) || COLOR_OPTIONS[0]; const tier = getTier(p.age); return (<button key={p.id} onClick={() => toggle(p.id)} style={{ padding: '10px 14px', borderRadius: '14px', border: `2px solid ${on ? color.primary : '#333'}`, background: on ? `${color.primary}18` : 'transparent', color: on ? color.primary : '#666', cursor: 'pointer', fontWeight: 'bold' }}>{on ? '✓ ' : ''}{av?.emoji} {p.name} <span style={{ fontSize: '11px', color: tier.color }}>{tier.label}</span></button>); })}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}><div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: '#888' }}>THE PLAN · {fmtDuration(total)}</div><button onClick={() => setSteps(buildCourseSteps(course, equipment, players))} style={{ padding: '6px 14px', borderRadius: '10px', border: '1px solid #00ffff', background: 'transparent', color: '#00ffff', cursor: 'pointer', fontSize: '13px' }}>🔀 Shuffle</button></div>
-          {steps.length === 0 ? (<div style={{ padding: '16px', color: '#ff8000', border: '1px solid #ff8000', borderRadius: '10px', marginBottom: '16px' }}>No exercises available — add equipment in Command Center or choose different players.</div>) : (
+          {steps.length === 0 ? (<div style={{ padding: '16px', color: '#ff8000', border: '1px solid #ff8000', borderRadius: '10px', marginBottom: '16px' }}>{players.length === 0 ? 'Pick at least one player.' : unlockList.length ? 'No exercises available yet — this course needs equipment you haven’t checked off. Tap what you have:' : 'No exercises fit the selected players’ ages — try different players.'}</div>) : (
             <ol style={{ listStyle: 'none', marginBottom: '16px' }}>{steps.map((a, i) => (<li key={a.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', marginBottom: '6px', borderRadius: '10px', background: 'rgba(0,0,0,0.3)', border: '1px solid #2a2a4a', color: '#ddd' }}><span><span style={{ color: course.color, fontFamily: 'Orbitron, sans-serif', marginRight: '10px' }}>{i + 1}</span>{a.name}<span style={{ color: '#777', fontSize: '12px', marginLeft: '8px' }}>{a.work.map(w => WORK_TYPES[w].emoji).join(' ')} {a.muscles.slice(0, 3).map(m => MUSCLES[m].label).join(', ')}</span></span><span style={{ color: '#888', fontSize: '13px', whiteSpace: 'nowrap' }}>{fmtDuration(a.durationSec)}</span></li>))}</ol>)}
-          {steps.length > 0 && steps.length < course.count && <div style={{ color: '#ff8000', fontSize: '13px', marginBottom: '14px' }}>Only {steps.length} of {course.count} exercises fit your equipment — add more gear for the full course.</div>}
+          {steps.length > 0 && steps.length < course.count && <div style={{ color: '#ff8000', fontSize: '13px', marginBottom: '8px' }}>Only {steps.length} of {course.count} exercises fit your equipment. Have any of these?</div>}
+          {players.length > 0 && steps.length < course.count && unlockList.length > 0 && (<div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>{unlockList.map(([eq, n]) => { const item = EQUIPMENT_OPTIONS.find(e => e.id === eq); return (<button key={eq} onClick={() => onToggleEquipment(eq)} style={{ padding: '8px 12px', borderRadius: '10px', border: '1px dashed #00ff00', background: 'transparent', color: '#00ff00', cursor: 'pointer', fontSize: '13px' }}>+ {item?.emoji} {item?.name} <span style={{ color: '#888' }}>(unlocks {n})</span></button>); })}</div>)}
           <button disabled={players.length === 0 || steps.length === 0} onClick={() => { unlockAudio(); onStart(steps, playerIds); }} className="arcade-btn" style={{ width: '100%', padding: '18px', fontSize: '18px', border: `3px solid ${course.color}`, borderRadius: '14px', background: 'transparent', color: course.color, cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: `0 0 30px ${course.color}50`, opacity: players.length && steps.length ? 1 : 0.4 }}>🚀 START COURSE</button>
         </div>
       </div>);
@@ -855,7 +861,7 @@
         {currentPopup?.type === 'level' && <LevelUpPopup level={{ ...currentPopup.data, name: `${currentPopup.who} → ${currentPopup.data.name}` }} onClose={closePopup} />}
         {pointsPopup && <PointsPopup points={pointsPopup.points} participantName={pointsPopup.participantName} onClose={() => setPointsPopup(null)} />}
         {showWheel && <SpinningWheel activities={getEligibleActivities()} onComplete={(activity) => { setShowWheel(false); setSearchQuery(activity.name); setActivityFilter('all'); setFocusFilter(''); setView('activities'); }} onClose={() => setShowWheel(false)} />}
-        {courseSetup && <CourseSetup course={courseSetup} participants={participants} equipment={equipment} onClose={() => setCourseSetup(null)} onStart={(steps, playerIds) => { setCourseRun({ course: courseSetup, steps, playerIds }); setCourseSetup(null); }} />}
+        {courseSetup && <CourseSetup course={courseSetup} participants={participants} equipment={equipment} onToggleEquipment={toggleEquipment} onClose={() => setCourseSetup(null)} onStart={(steps, playerIds) => { setCourseRun({ course: courseSetup, steps, playerIds }); setCourseSetup(null); }} />}
         {courseRun && <CourseRunner course={courseRun.course} steps={courseRun.steps} players={runPlayers} onStepDone={(activity, ids) => completeActivity(activity, ids, { quiet: true })} onFinish={finishCourse} onExit={() => setCourseRun(null)} />}
         <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', position: 'relative', zIndex: 3 }}>
           {view !== 'dashboard' && (<button onClick={() => { setView('dashboard'); setSelectedParticipant(null); setSearchQuery(''); }} style={{ marginBottom: '16px', padding: '10px 20px', borderRadius: '25px', border: '2px solid #00ffff', background: 'transparent', color: '#00ffff', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'Orbitron, sans-serif', boxShadow: '0 0 15px rgba(0,255,255,0.2)' }}>← BACK</button>)}
